@@ -32,8 +32,8 @@
                 using various methods such as Euclidean distance and Normalized Cross Correlation. After
                 reading through online course threads, I learned that many students had achieved great results
                 using Mutual Information as their preferred metric. After implementing this approach, I found the
-                results satisfactory but was not pleased with the runtime of the algorithm. Consequently, I
-                discovered a more innovative method, previously unknown to me, and decided to explore it.</p>
+                results satisfactory. Consequently, I discovered a more innovative method, previously unknown to me, and
+                decided to explore it.</p>
         </div>
     </div>
 
@@ -43,11 +43,15 @@
             <p>Phase cross correlation shifts focus from searching for RGB similarities in the visual pixel domain to
                 analyzing the frequency domain. In this approach, we compare the frequencies to detect similarities.
 
-                Initially, I utilized a standard version of the function for testing. The results were
-                impressively faster than traditional image sliding techniques. Encouraged by this efficiency, I delved
-                into the algorithm's principles to understand and implement it myself as it was mentioned to be part of
-                the
-                B&W on Ed. Below, I have shared the custom function I coded, where I also explain the underlying logic.
+                Initially, I utilized a standard version of the function for testing. Satisfied with the results, I
+                decided to implement an aligning algorithm, that aligns the initial images using phase cross
+                correlation. After that, I decided to use the image sliding approach to fine-tune the results by
+                applying image sliding on the initially aligned images. With this way, I was able to achieve
+                satisfactory alignment results in great efficiency. Encouraged by this improvement and learning that it
+                would be extra credit worthy, I delved into the algorithm's principles to understand and implement it
+                myself as it was mentioned to be part of
+                the B&W on Ed. Below, I have shared the custom function I coded, where I also explain the underlying
+                logic.
             </p>
 
             <div class="row">
@@ -182,7 +186,9 @@
                 build a pyramid with coarse to finer resolution images of our base image. Then, I start consuming
                 from
                 the
-                coarsest one and calculate the alignments as I step through the layers of the pyramid. Since I apply
+                coarsest one and calculate the alignments as I step through the layers of the pyramid. The alignment
+                logic stays the same: phase cross correlation for the initial alignment, then I slide the images over
+                the base image for fine tuning the alignments. Since I apply
                 the
                 shift's at each level while keeping track of the cumulative shift which is the multiplication of the
                 previous shifts with 2 as the resolution increases to twice the size with each step. Here are the
