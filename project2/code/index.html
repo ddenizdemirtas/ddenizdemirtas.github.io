@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project 2</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <nav id="sidebar">
+            <h3>Contents</h3>
+            <ul>
+                <li><a href="#technique1">Part 1.1</a></li>
+                <li><a href="#technique2">Part 1.2</a></li>
+                <li><a href="#technique3">Part 2.1</a></li>
+                <li><a href="#technique4">Part 2.2</a></li>
+                <li><a href="#technique5">Part 2.3</a></li>
+                <li><a href="#technique6">Part 2.4</a></li>
+
+
+
+                <!-- Add more technique links as needed -->
+            </ul>
+        </nav>
+
+        <main id="content">
+            <div id="part1" class="section">
+                <h1>CS180 Project 2: Fun With Filters and Frequencies</h1>
+                <h2>Deniz Demirtas</h2>
+
+                <div class="content">
+                    <p>WRITE AN INTRODUCTION HERE - ENES YARRAMI YE </p>
+                </div>
+            </div>
+
+            <div id="technique1" class="section">
+                <h2>Part 1: Fun with Filters</h2>
+                <div class="content">
+                    <h3>Part 1.1: Finite Difference Operator</h3>
+                    <p>For this section, we are tasked with applying finite difference operators to our image to detect
+                        edges. Specifically, we use <code>D_x = [1, -1]</code> for horizontal edges and
+                        <code>D_y = [1, -1]^T</code> (where <code>^T</code> denotes the transpose, making it a column
+                        vector) for vertical edges. Intuitively, convolving the image with <code>D_x</code> detects
+                        changes in the horizontal direction, indicating vertical edges, and conversely, convolving with
+                        <code>D_y</code> detects changes in the vertical direction, indicating horizontal edges. This
+                        can be thought of as observing the incremental changes in the image as if moving stepwise in one
+                        direction reveals edges perpendicular to that direction.
+                        </code>
+                    </p>
+                    <p>Partial Derivatives</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part1.1/horizontal_edges.jpg" alt="Horizontal Edges">
+                            <p>Horizontal edges</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part1.1/horizontal_edges.jpg" alt="Horizontal Edges">
+                            <p>Vertical Edges</p>
+                        </div>
+                    </div>
+                    <p>Now, to turn the partial derivatives into an edge image, I have calculated the gradient magnitude
+                        image. The gradient magnitude is computed by taking the square root of the sum of the squares of
+                        the partial derivatives in both the x and y directions. This value represents the rate of change
+                        at each point in the image, highlighting the edges. After computing the gradient magnitude, I
+                        binarized it with an empirically tested threshold <code>0.355</code> to reduce the noise in the
+                        edge image.
+                    </p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part1.1/gradient_magnitude.jpg" alt="Gradient magnitude">
+                            <p>Gradient Magnitude Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part1.1/binary_img.jpg" alt="Binary image">
+                            <p>Binary Edge Image</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique2" class="section">
+                <h3>Part 1.2: Derivative of Gaussian (Dog) Filter</h3>
+                <p>From the lecture, we have learned that convolving the original image with an appropriate Gaussian
+                    filter
+                    would stabilize the gradient computations by smoothing out the original image and enhances the
+                    true edges. Therefore,
+                    I have created a 2D Gaussian filter with the following parameters after following the in-class
+                    advice with some
+                    empirical testing <code>kernel size = 11, sigma = 1.8</code>
+                </p>
+                <div class="image-container">
+                    <div class="image-wrapper">
+                        <img src="media/Part1.2/gaussian_partial_derivative_horizontal_edges.jpg"
+                            alt=" Horizontal Edges">
+                        <p>Horizontal edges of image smoothened with Gaussian filter</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/Part1.2/gaussian_partial_derivative_vertical_edges.jpg" alt="Vertical Edges">
+                        <p>Vertical edges of image smoothened with Gaussian filter</p>
+                    </div>
+                </div>
+                <p>To calculate the gradient binary image, after empirically testing threshold values, I have
+                    settled at <code>0.31</code>
+                </p>
+                <div class="image-container">
+                    <div class="image-wrapper">
+                        <img src="media/Part1.2/gaussian_gradient_magnitude_.jpg" alt="Gradient Magnitude">
+                        <p>Gradient magnitude of image smoothened with Gaussian filter</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/Part1.2/gaussian_binary_img.jpg" alt="Gaussian Binary">
+                        <p>Binary gradient magnitude of image smoothened with Gaussian filter</p>
+                    </div>
+                </div>
+                <p>Now, we understand that identical results can be achieved by convolving the Gaussian filter with
+                    <code>D_x</code> and <code>D_y</code> respectively instead of convolving the image with the
+                    Gaussian filter,
+                    and then convolving with finite difference operators onec again, thanks to the associativity of
+                    convolution.
+                    By visually comparing the results below with the above version, we can confirm this.
+
+                </p>
+                <div class="image-container">
+                    <div class="image-wrapper">
+                        <img src="media/Part1.2/DoG_horizontal_edges.jpg" alt="Horizontal Edges">
+                        <p>Horizontal Edges after DoG convolution</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/Part1.2/DoG_vertical_edges.jpg" alt="Vertical Edges">
+                        <p>Vertical Edges after DoG convolution</p>
+                    </div>
+                </div>
+                <div class="image-container">
+                    <div class="image-wrapper">
+                        <img src="media/Part1.2/DoG_magnitude_.jpg" alt="Gradient Magnitude">
+                        <p>Gradient magnitude image after DoG convolution</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/Part1.2/DoG_binary_img.jpg" alt="DoG Binary">
+                        <p>Binary gradient image after DoG convolution</p>
+                    </div>
+                </div>
+                <h3>Differences Between Part 1.1 and Part 1.2 Outputs</h3>
+                <p>Starting from the visual differences observed in the gradient magnitude image, the edges appear
+                    more continuous than the discrete edges seen with the initial edge detection method. Besides the
+                    more continuous appearance, the edges in the image are thicker, and patterns resembling noisy
+                    artifacts are more pronounced. The main takeaway is that the image appears smoother compared to
+                    how it looked more pixelated previously. As for the binary edge image, the results show smooth,
+                    continuous edges that focus strictly on the image content, significantly reducing noise.
+                    Additionally, the background edges are captured more clearly.
+                </p>
+                <p>DoG Filters Used Visualized</p>
+                <div class="image-container">
+                    <div class="image-wrapper">
+                        <img src="media/Part1.2/DoGx.jpg" alt="DoGx">
+                        <p>DoG_x</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/Part1.2/DoGy.jpg" alt="DoGy ">
+                        <p>DoG_y</p>
+                    </div>
+                </div>
+            </div>
+            <div id="technique3" class="section">
+                <h2>Part 2</h2>
+                <div class="content">
+                    <h3>Part 2.1: Image "Sharpening"</h3>
+                    <p>An unsharp mask filter can be implemented in a single convolution operation by designing a
+                        specialized convolution kernel that combines both Gaussian blurring and edge enhancement.
+                        This
+                        kernel features a central positive coefficient, which is significantly higher than the
+                        sum of the surrounding negative coefficients. When applied to an image, this kernel
+                        simultaneously blurs and sharpens by subtracting a fraction of the blurred image from the
+                        original. The central positive weight enhances the contrast of central pixel values relative
+                        to
+                        their neighbors, accentuating edges. This approach allows for a streamlined, efficient
+                        process
+                        that achieves edge sharpening and detail enhancement in one convolution step.</p>
+                    <p>When deciding which images to experiment with, I recalled a time as a car enthusiast when I
+                        spotted a car but was unsuccessful in capturing clear images because the car I was in was
+                        moving. This presented a perfect opportunity to apply my academic knowledge to enhance my
+                        daily
+                        life. Here are the results of my images adjusted with different alpha values. </p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/cameraman.png" alt="original">
+                            <p>Original Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/cameraman.png_1.jpg" alt="alpha=2">
+                            <p><code>alpha = 2</code></p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/cameraman.png_2.jpg" alt="alpha=4">
+                            <p><code>alpha = 4</code></p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/cameraman.png_3.jpg" alt="alpha=6">
+                            <p><code>alpha = 6</code></p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/tajmahal.jpg_0.jpg" alt="original">
+                            <p>Original Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/tajmahal.jpg_1.jpg" alt="alpha=2">
+                            <p><code>alpha = 2</code></p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/tajmahal.jpg_2.jpg" alt="alpha=4">
+                            <p><code>alpha = 4</code></p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/tajmahal.jpg_3.jpg" alt="alpha=6">
+                            <p><code>alpha = 6</code></p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/car2.JPG_0.jpg" alt="original">
+                            <p>Original Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/car2.JPG_01.jpg" alt="alpha=1">
+                            <p><code>alpha = 1</code></p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/car2.JPG_1.jpg" alt="alpha=2">
+                            <p><code>alpha = 2</code></p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/car2.JPG_2.jpg" alt="alpha=4">
+                            <p><code>alpha = 4</code></p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/car4.JPG_0.jpg" alt="original">
+                            <p>Original Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/car4.JPG_01.jpg" alt="alpha=1">
+                            <p><code>alpha = 1</code></p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/car4.JPG_1.jpg" alt="alpha=2">
+                            <p><code>alpha = 2</code></p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/car4.JPG_2.jpg" alt="alpha=4">
+                            <p><code>alpha = 4</code></p>
+                        </div>
+                    </div>
+                    <p>The results at low alpha are great. Here is an experiment with an image that's already sharp
+                        enough.</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/sharp.jpg_0.jpg" alt="original">
+                            <p>Original Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/sharp.jpg_1.jpg" alt="alpha=1">
+                            <p><code>alpha = 1</code></p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/sharp.jpg_2.jpg" alt="alpha=2">
+                            <p><code>alpha = 2</code></p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.1/sharp.jpg_3.jpg" alt="alpha=4">
+                            <p><code>alpha = 4</code></p>
+                        </div>
+                    </div>
+                    <p>The results of the unsharp mask filter show that it makes the edges more pronounced.
+                        Additionally, the level of sharpness can make the image appear pixelated to the eye, due to
+                        the
+                        further emphasis and smaller size of perpendicular edges. However, there isn't much
+                        sharpening being achieved as the alpha increases compared to other images.</p>
+                </div>
+            </div>
+            <div id="technique4" class="section">
+                <div class="content">
+
+                    <h3>Part 2.2: Hybrid Images</h3>
+                    <p>Hybrid images are images where what you see changes depending on the distance you view them
+                        from.
+                        This happens because two images are encoded into one: one image's high frequencies and the
+                        other
+                        image's low frequencies. Our eyes are better at picking up high frequencies when viewing up
+                        close, but as we move farther away, we begin to perceive the image with lower frequencies.
+                        Therefore, up close, we see the image with higher frequencies, and from a distance, the
+                        lower
+                        frequency image becomes more prominent. Here are a few examples.
+                    </p>
+                    <h3>Derek and Nutmeg</h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/DerekPicture.jpg" alt="Derek Picture">
+                            <p>Original Derek</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/nutmeg.jpg" alt="Nutmeg">
+                            <p>Original Nutmeg</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/derek_and_cat.jpg" alt="Hybrid Derek Nutmeg">
+                            <p>Hybrid Image</p>
+                        </div>
+                    </div>
+                    <h3>Frenemies - Meme that would get me in a Turkish Jail (Favourite)</h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/erdogan.jpg" alt="Erdogan">
+                            <p>Original Erdogan (president)</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/gulen.jpg" alt="Gulen">
+                            <p>Original Gulen (leader of the failed coup)</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/tayyip_feto.jpg" alt="Hybrid Erdogan Gulen">
+                            <p>Hybrid Image (frenemies)</p>
+                        </div>
+                    </div>
+                    <h3>Frequency Analysis</h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/low_image_fft.jpg" alt="Erdogan FFT">
+                            <p>Original Erdogan FFT</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/high_image_fft.jpg" alt="Gulen FFT">
+                            <p>Original Gulen FFT</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/low_passed_image_fft.jpg" alt="Filtered Erdogan FFT">
+                            <p>Erdogan Low Pass Filtered FFT</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/high_passed_image_fft.jpg" alt="Filtered Gulen FFT">
+                            <p>Gulen High Pass Filtered FFT</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/hybrid_passed_image_fft.jpg" alt="Hybrid Image FFT">
+                            <p>Hybrid Image FFT</p>
+                        </div>
+                    </div>
+                    <h3>Make art not war - (failure, arguably ?) </h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/violin.jpg" alt="Violin">
+                            <p>Original Violin</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/gun.jpg" alt="Gun">
+                            <p>Original Gun</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.2/soldier_artist.jpg" alt="Hybrid violin gun">
+                            <p>Hybrid</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h2>Part 2.2 - Bells & Whistles</h2>
+            <p>For the bells and whistles part, I wanted to give the "Make art not war" image a chance since
+                it's results can definitely use some improvements. In my opinion, there is no clear winner,
+                it's
+                up to the viewers' taste. </p>
+            <div class="image-container">
+                <div class="image-wrapper">
+                    <img src="media/Part2.2/low_gray_high_color.jpg" alt="Low gray high color hybrid image">
+                    <p>Low Frequency Image grayscale, high frequency image colored</p>
+                </div>
+                <div class="image-wrapper">
+                    <img src="media/Part2.2/high_gray_low_color.jpg" alt="high gray low color hybrid image">
+                    <p>High Frequency Image grayscale, Low frequency image colored</p>
+                </div>
+            </div>
+            <div id="technique5" class="section">
+                <div class="content">
+                    <h2>Part 2.3: Multi Resolution Image Blending</h2>
+                    <p>Image blending is a powerful technique used to seamlessly merge two images, creating a smooth
+                        and natural transition between them. This is achieved by generating a transition region, or
+                        mask, that gradually blends one image into the other. The blending process operates across
+                        multiple levels of detail, or frequency layers, of the images. By utilizing Laplacian and
+                        Gaussian pyramids, the technique ensures that both coarse and fine details are blended
+                        harmoniously, resulting in a visually consistent output. The Gaussian pyramid is used to create
+                        progressively blurred versions of the images, while the Laplacian pyramid captures the
+                        high-frequency details, allowing for smooth transitions even at the smallest scales.</p>
+                    <h3>Original Images</h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/apple.jpg" alt="apple">
+                            <p>Apple</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/orange.jpg" alt="orange">
+                            <p>Apple</p>
+                        </div>
+                    </div>
+                    <p>The process begins by constructing the Gaussian pyramids for both images. At each level of the
+                        pyramid, the images undergo Gaussian blurring followed by subsampling, progressively reducing
+                        the image resolution. This technique effectively isolates different frequency bands at each
+                        level, allowing us to access a broad range of image details. The lower levels capture the
+                        high-frequency, fine details, while the upper levels focus on the low-frequency, large-scale
+                        structures, providing a comprehensive representation of the image across multiple spatial
+                        frequencies. </p>
+                    <h3>Gaussian Pyramids</h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image1_gaussian_0.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image1_gaussian_1.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image1_gaussian_2.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image1_gaussian_3.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image1_gaussian_4.jpg" alt="apple">
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image2_gaussian_0.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image2_gaussian_1.jpg" alt="orange">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image2_gaussian_2.jpg" alt="orange">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image2_gaussian_3.jpg" alt="orange">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image2_gaussian_4.jpg" alt="orange">
+                        </div>
+                    </div>
+                    <p>Next, we compute the Laplacian pyramids for both images. This is done by subtracting the current
+                        level of the Gaussian pyramid from the upsampled version of the next coarser level. This
+                        operation isolates the higher-frequency details at each step, capturing the fine textures and
+                        edges that distinguish different levels of detail within the image. By repeating this process
+                        across the pyramid, we can systematically extract the high-frequency components that are
+                        critical for blending sharp features and preserving image clarity during the merging process.
+                    </p>
+                    <h3>Laplacian Pyramids</h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image1_laplacian_0.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image1_laplacian_1.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image1_laplacian_2.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image1_laplacian_3.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image1_laplacian_4.jpg" alt="apple">
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image2_laplacian_0.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image2_laplacian_1.jpg" alt="orange">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image2_laplacian_2.jpg" alt="orange">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image2_laplacian_3.jpg" alt="orange">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/image2_laplacian_4.jpg" alt="orange">
+                        </div>
+                    </div>
+                    <p> Afterward, we create a Laplacian pyramid by blending each level of the respective image
+                        Laplacian pyramids with the corresponding level of the Gaussian mask pyramid. This is done using
+                        the formula <code>mask_level * image1_level + (1 - mask_level) * image2_level</code>. By
+                        applying this blending process at every level, we effectively merge the frequency details from
+                        both images. This approach ensures that the transition between the two images is smooth across
+                        all frequency bands, significantly enhancing the quality and coherence of the final blended
+                        result.
+                    </p>
+                    <h3>Recreation of Figure 3.42</h3>
+                    <h4>Level 0</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/pyramid_level_image1_masked_0.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/pyramid_level_image2_masked_0.jpg" alt="orange">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/blended_laplacian_0.jpg" alt="orange">
+                        </div>
+                    </div>
+                    <h4>Level 2</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/pyramid_level_image1_masked_2.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/pyramid_level_image2_masked_2.jpg" alt="orange">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/blended_laplacian_2.jpg" alt="orange">
+                        </div>
+                    </div>
+                    <h4>Level 4</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/pyramid_level_image1_masked_4.jpg" alt="apple">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/pyramid_level_image2_masked_4.jpg" alt="orange">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.3/blended_laplacian_4.jpg" alt="orange">
+                        </div>
+                    </div>
+                    <h4>Final Result</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src=" media/Part2.3/orangeapple.jpg" alt="apple">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique6" class="section">
+                <div class="content">
+                    <h2>Part 2.4: Multi Resolution Image Blending Results</h2>
+                    <p>A tribute to the Battle of Surfaces - Federer vs Nadal</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.4/glass_court.jpeg" alt="tennis">
+                            <o>Grass - Federer</o>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.4/sized_dirt_court.jpg" alt="dirt tennis">
+                            <p>Clay - Nadal</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.4/dirt_grass.jpg" alt="dirt grass">
+                            <p>Palma Arena - 2 May 2007</p>
+                        </div>
+                    </div>
+                    <p>Eggmoji</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part2.4/egg.jpg" alt="tennis">
+                            <o>Egg</o>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.4/emoji.jpg" alt="dirt tennis">
+                            <p>Emoji</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.4/emoji_egg.jpg" alt="dirt grass">
+                            <p>Eggmoji</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part2.4/emoji_mask.jpg" alt="dirt grass">
+                            <p>Emoji Mask</p>
+                        </div>
+                    </div>
+                    <p>My most important takeaway from the project is learning how much the collective frequencies of
+                        the image constructs our visual experience. Since we are not able to experience the effects of
+                        frequencies, this makes me wonder the signal processing our minds do when blending and creating
+                        an image from the incoming frequencies. What type of algorithms does it use?</p>
+                </div>
+            </div>
+    </div>
+
+    </div>
+    </div>
+    </div>
+    </main>
+    </div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('#sidebar a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Fade-in animation for sections
+        const sections = document.querySelectorAll('.section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+
+    <script>
+        // JavaScript code as provided above
+        document.addEventListener("DOMContentLoaded", function () {
+            const images = document.querySelectorAll("img");
+
+            images.forEach(function (img) {
+                img.addEventListener("click", function () {
+                    if (!document.fullscreenElement) {
+                        // Enter full-screen mode
+                        if (img.requestFullscreen) {
+                            img.requestFullscreen();
+                        } else if (img.webkitRequestFullscreen) { /* Safari */
+                            img.webkitRequestFullscreen();
+                        } else if (img.msRequestFullscreen) { /* IE11 */
+                            img.msRequestFullscreen();
+                        }
+                    } else {
+                        // Exit full-screen mode
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        } else if (document.webkitExitFullscreen) { /* Safari */
+                            document.webkitExitFullscreen();
+                        } else if (document.msExitFullscreen) { /* IE11 */
+                            document.msExitFullscreen();
+                        }
+                    }
+                });
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>
