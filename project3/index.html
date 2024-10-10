@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project 3</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <nav id="sidebar">
+            <h3>Contents</h3>
+            <ul>
+                <li><a href="#technique1">Part 1</a></li>
+                <li><a href="#technique2">Part 2</a></li>
+                <li><a href="#technique3">Part 3</a></li>
+                <li><a href="#technique4">Part 4</a></li>
+                <li><a href="#technique5">Part 5</a></li>
+                <li><a href="#technique6">B&W</a></li>
+                <!-- Add more technique links as needed -->
+            </ul>
+        </nav>
+
+        <main id="content">
+            <div id="part1" class="section">
+                <h1>CS180 Project 3: Face Morphing</h1>
+                <h2>Deniz Demirtas</h2>
+
+                <div class="content">
+                    <p>In this project, we will explore various warping and morphing scenarios over various images and
+                        me.</p>
+                </div>
+            </div>
+
+            <div id="technique1" class="section">
+                <h2>Part 1: Defining Correspondences</h2>
+                <div class="content">
+                    <p>Our first task is to define the correspondences on the two images that we want to merge together.
+                        Defining the correspondences will enable us to generate Triangulation over the two faces, which
+                        will enable us to proceed with a smoother morphing of the faces. To define the correspondeces, I
+                        used the online tool that one of the students from the previous semesters built (kudos to
+                        whoever that person is). Using the online tool, I have selected 50 correspondeces on the images
+                        of me and one of my favourite actors, Matt Damon.</p>
+                    <p>Original Images</p>
+                    <div class="image-container">
+                        <div class="image-wrapper" style="width: 30%;">
+                            <img src="media/imageA.jpg" alt="Deniz Demirtas">
+                        </div>
+                        <div class="image-wrapper small" style="width: 30%;">
+                            <img src="media/imageB.jpg" alt="Matt Damon">
+                        </div>
+                    </div>
+                    <p>Facial correspondeces: Respective Correspondences</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/correspondences.jpg" style="width: 150%;" alt="correspondeces">
+                        </div>
+                    </div>
+                    <p>Now that we have corresponding points from both images, we use Delaunay triangulation to break
+                        the face into triangles, enabling us to morph each triangle individually.
+
+                        This approach ensures smooth transitions between key facial features and prevents gaps or
+                        overlaps. By morphing triangle by triangle, we can preserve the local structure of the face and
+                        avoid distortions during the transformation.
+
+                        In order to reduce errors when creating the Delunay Triangulation's of the images, we do so on
+                        the average of the correspondeces from both images, by doing so, we reduce the potential
+                        triangle deformations</p>
+                    <p>Facial correspondeces: Midway points between two images</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/midway_correspondences.jpg" style="width: 150%;" alt="correspondeces">
+                        </div>
+                    </div>
+                    <p>Triangulation over midway points</p>
+                    <div class="image-container"></div>
+                    <div class="image-wrapper">
+                        <img src="media/triangulation.jpg" style="width: 150%;" alt="correspondeces">
+                    </div>
+                </div>
+            </div>
+            <div id="technique2" class="section">
+                <div class="content">
+                    <h3>Part 2: The "Mid-Way Face"</h3>
+                    <p>Before computing the morph sequence, we first create the mid-way image, which is a 50-50 blend of
+                        the
+                        two images. The morph sequence is simply a frame-by-frame blend with changing blend percentages.
+
+                        Once we have the mid-way points and triangulation, we calculate the affine transformation matrix
+                        for
+                        each triangle in both images to map them to the corresponding triangle in the mid-way image.
+                        Directly applying this transformation could cause overlapping or out-of-bound pixels. To prevent
+                        this, we use the inverse affine transformation to "pull" pixels from the mid-way image back to
+                        the
+                        originals. Since this doesn't guarantee precise 1:1 mapping, we use bilinear interpolation,
+                        which
+                        averages pixel values based on their distance to neighboring pixels, ensuring smooth and
+                        accurate
+                        results.
+                    </p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/imageA.jpg" style="width: 70%;" alt="Deniz">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/midway_image.jpg" style="width: 70%;" alt="Deniz Damon">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/imageB.jpg" style="width: 70%;" alt="Matt Damon">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div id="technique3" class="section">
+                <h2>Part 3: The Morph Sequence</h2>
+                <div class="content">
+                    <p>Now, we apply the morph algorithm with varying blend percentages, transitioning from 0 to 1 over
+                        60 frames to generate the following morph sequence </p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/morph_animation.gif" alt="Morph sequence">
+                            <p>Original Image</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique4" class="section">
+                <div class="content">
+
+                    <h3>Part 4: The "Mean Face" of a Population</h3>
+                    <p> For the following part, I have choosen the FEI Face Database and seperated the images based on
+                        the smiling and the non-smiling ones. Then I computed the average shape of the smiling and non
+                        smiling populations. This consisted of calculating the average geometry of faces in the dataset,
+                        then morphing every image to the average geometry, and then finding the average face over the
+                        morphed images.
+                    </p>
+                    <h3>Average Faces of Populations</h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/average_smiling_face.jpg" alt="Smiling Avg">
+                            <p>The average smiling face</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/average_non_smiling_face.jpg" alt="Non smiling Avg">
+                            <p>The average non smiling face</p>
+
+                        </div>
+                    </div>
+                    <p>After we have the average faces and their respective average correspondence points. We can morph
+                        the images in the dataset to the average images. However, when I tried to do so,
+                        I ended up with results that didn't encapsulate the entire image. Then, I realized that the
+                        issue is because of the
+                        lack of correspondences on the corners of the images. This caused the morphed images to only
+                        have the center morphed, but not the corners. To fix this, I manually inserted correspondences
+                        to the corners, and re-run the algorithm to arrive at the above results.
+                    </p>
+                    <h3>Dataset Faces Morphed Into The Average </h3>
+                    <p>Now in the images below, I have morphed all the images from the dataset to the average face
+                        calculated. Here are some examples:</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/193b_original.jpg" alt="193 original">
+                            <p>Face 193b smiling (original)</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/193b.jpg" alt="193">
+                            <p>Face 193b smiling (morphed to average smiling)</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/148b_original.jpg" alt="148 original">
+                            <p>Face 148b smiling (original)</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/148b.jpg" alt="148">
+                            <p>Face 148b smiling (morphed to average smiling)</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/110a_original.jpg" alt="110a original">
+                            <p>Face 110a non-smiling (original)</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/110a.jpg" alt="110a">
+                            <p>Face 110a non-smiling (morphed to average non-smiling)</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/167a_original.jpg" alt="167a original">
+                            <p>Face 167a non-smiling (original)</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/167a.jpg" alt="167a">
+                            <p>Face 167a non-smiling (morphed to average non-smiling)</p>
+                        </div>
+                    </div>
+                    <h3>Me and the Averages</h3>
+                    <p>Now that I have the average faces, I have morphed my face into the average geometry and the
+                        average face to the geometry of my face. Here are the results: </p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/me_to_smile.jpeg" alt="smile">
+                            <p>Me morphed to the average smiling geometry</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/me_resize.jpg" alt="me">
+                            <p>Me</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/me_to_non_smile.jpg" alt="non smile">
+                            <p>Me morphed to the average non smiling geometry</p>
+                        </div>
+                    </div>
+                    <p>Here is the average non smiling face morphed to my face geometry:</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/me_resize.jpg" alt="avg morphed to me">
+                            <p>Me</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/avg_warped_to_me.jpg" alt="avg morphed to me">
+                            <p>Average morphed to my geometry</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/average_non_smiling_face.jpg" alt="avg morphed to me">
+                            <p>Average face</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique5" class="section">
+                <div class="content">
+                    <h2>Part 5: Caricatures, Extrapolating from the mean</h2>
+                    <p>
+                        In this section, we generate caricatures of my face by performing <strong>extrapolation</strong>
+                        with respect to the average face geometry. The core idea is to exaggerate the differences
+                        between my facial features and the average face by adjusting the <strong>alpha</strong>
+                        parameter. As we increase the value of <strong>alpha</strong>, the unique characteristics of my
+                        face become more prominent, amplifying the distance between my face and the population mean.
+                        Conversely, when <strong>alpha</strong> is reduced (toward negative values), my facial features
+                        are de-emphasized, and the geometry tends to align more closely with the average face.
+                    </p>
+                    <p>
+                        Technically, this process involves the <strong>extrapolation of facial landmarks</strong>. Given
+                        the landmarks of my face and the average face, we compute a new set of landmarks using the
+                        formula:
+                    </p>
+                    <pre><code>
+                    New Landmarks = My Landmarks + alpha × (My Landmarks - Average Landmarks)
+                    </code></pre>
+                    <p>
+                        Where:
+                    <ul>
+                        <li><strong>My Landmarks</strong> represent the positions of facial keypoints on my face.</li>
+                        <li><strong>Average Landmarks</strong> are the corresponding keypoints on the average face.</li>
+                        <li><strong>Alpha</strong> controls the degree of exaggeration or moderation. When
+                            <code>alpha = 1</code>, my facial features remain unchanged. When <code>alpha > 1</code>,
+                            the distinctive features of my face (e.g., the shape of my eyes, nose, and mouth) are
+                            exaggerated, leading to a caricature. For <code>alpha &lt; 1</code>, the features shift
+                            towards the average, resulting in a face with reduced individual characteristics.
+                        </li>
+                    </ul>
+                    </p>
+                    <p>
+                        This extrapolation method allows us to visualize how my face deviates from the average in both
+                        shape and proportion. By manipulating the value of <strong>alpha</strong>, we can create a
+                        spectrum of caricatures ranging from subtle modifications to extreme exaggerations,
+                        demonstrating the variability of human facial features in a controlled and systematic manner.
+                    </p>
+
+                    <p style="font-size: 24px;">More me: &rAarr;</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated/extrapolated_face_alpha_0.25.jpg" alt="apple">
+                            <p>alpha = 0.25</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated/extrapolated_face_alpha_0.5.jpg" alt="apple">
+                            <p>alpha = 0.50</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated/extrapolated_face_alpha_0.75.jpg" alt="apple">
+                            <p>alpha = 0.75</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated/extrapolated_face_alpha_1.0.jpg" alt="apple">
+                            <p>alpha = 1.00</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated/extrapolated_face_alpha_1.25.jpg" alt="apple">
+                            <p>alpha = 1.25</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated/extrapolated_face_alpha_1.5.jpg" alt="apple">
+                            <p>alpha = 1.50</p>
+                        </div>
+                    </div>
+                    <p>My comment on this results are so that, since my nose has a sway to the left, as we extrapolate
+                        on my facial features, this sway becomes dominant to the point of disturbing the entire face
+                        geometry.</p>
+                    <div class="image-container">
+                        <div class="image-wrapper" style="width: 20%;">
+                            <img src="media/me_resize.jpg" alt="apple">
+                            <p>Me</p>
+                        </div>
+                    </div>
+                    <p style="font-size: 24px;">More Average: &rAarr;</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated_negative/extrapolated_face_alpha_-0.25.jpg" alt="apple">
+                            <p>alpha = -0.25</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated_negative/extrapolated_face_alpha_-0.5.jpg" alt="apple">
+                            <p>alpha = -0.50</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated_negative/extrapolated_face_alpha_-0.75.jpg" alt="apple">
+                            <p>alpha = -0.75</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated_negative/extrapolated_face_alpha_-1.0.jpg" alt="apple">
+                            <p>alpha = -1.00</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated_negative/extrapolated_face_alpha_-1.25.jpg" alt="apple">
+                            <p>alpha = -1.25</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/extrapolated_negative/extrapolated_face_alpha_-1.5.jpg" alt="apple">
+                            <p>alpha = -1.50</p>
+                        </div>
+                    </div>
+                    <p>Conversely, as we extrapolate further towards the average face, you can notice my nose getting
+                        straighter, which is understable as we move further towards the average geometry, but it results
+                        in the increase of my left cheek to account for the changing geometry. </p>
+                </div>
+            </div>
+            <div id="technique6" class="section">
+                <div class="content">
+                    <h2>Bells & Whistles</h2>
+                    <p>For the bells and whistles, I wanted to explore how I would look with the average geometries of
+                        various races and genders. Although, I can't pass without saying, the class wide morhing of the
+                        faces was a genious idea. I haven't read that line of the B&W quite to the last days, I wish I
+                        had seen it sooner and we had it realized, but incredible idea from the staff.
+                    </p>
+                    <p>As unfortunately, I don't have the time to initiate the class wide chain, I decided to
+                        experiement changing my images gender/race. Here are the results:</p>
+                    <h3>Only Shape</h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/me_resize.jpg" alt="avg morphed to me">
+                            <p>Me</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/me_as_avg_chinese_girl.jpg" alt="avg morphed to me">
+                            <p>Me as the average chinese women actor</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/avg_chinese_girl.jpg" alt="avg morphed to me">
+                            <p>Average Chinese girl</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/me_resize.jpg" alt="avg morphed to me">
+                            <p>Me</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/me_as_avg_samoan.jpg" alt="avg morphed to me">
+                            <p>Me as the average Samoan male</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/avg_samoan.jpg" alt="avg morphed to me">
+                            <p>Average Samoan Male</p>
+                        </div>
+                    </div>
+                    <h3>Only appearance</h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/me_to_chinese_apperance.jpg" alt="avg morphed to me">
+                            <p>Me as the average Chinese women actor</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/me_to_samoan_apperance.jpg" alt="avg morphed to me">
+                            <p>Average Samoan Male</p>
+                        </div>
+                    </div>
+                    <h3>Both appearance and shape</h3>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/me_to_chinese_apperance_shape.jpg" alt="avg morphed to me">
+                            <p>Me as the average Chinese women actor</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/me_to_samoan_apperance_shape.jpg" alt="avg morphed to me">
+                            <p>Average Samoan Male</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+    </div>
+
+    </main>
+    </div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('#sidebar a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Fade-in animation for sections
+        const sections = document.querySelectorAll('.section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+
+    <script>
+        // JavaScript code as provided above
+        document.addEventListener("DOMContentLoaded", function () {
+            const images = document.querySelectorAll("img");
+
+            images.forEach(function (img) {
+                img.addEventListener("click", function () {
+                    if (!document.fullscreenElement) {
+                        // Enter full-screen mode
+                        if (img.requestFullscreen) {
+                            img.requestFullscreen();
+                        } else if (img.webkitRequestFullscreen) { /* Safari */
+                            img.webkitRequestFullscreen();
+                        } else if (img.msRequestFullscreen) { /* IE11 */
+                            img.msRequestFullscreen();
+                        }
+                    } else {
+                        // Exit full-screen mode
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        } else if (document.webkitExitFullscreen) { /* Safari */
+                            document.webkitExitFullscreen();
+                        } else if (document.msExitFullscreen) { /* IE11 */
+                            document.msExitFullscreen();
+                        }
+                    }
+                });
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>
