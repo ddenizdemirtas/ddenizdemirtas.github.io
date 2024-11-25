@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project 5</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .flip-vertical {
+            transform: scaleY(-1);
+        }
+
+        .gif-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gif-container img {
+            display: block;
+            width: 100%;
+            transition: opacity 0.5s ease;
+        }
+
+        .gif-container .gif {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .gif-container:hover .gif {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .video-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-container video {
+            display: block;
+            width: 100%;
+            opacity: 1;
+        }
+
+        .video-container:not(:hover) video {
+            opacity: 0.99;
+        }
+
+        .video-container:hover video {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav id="sidebar">
+            <h3>Contents</h3>
+            <ul>
+                <li><a href="#technique1">DeepFlod IF Images</a></li>
+                <li><a href="#technique2">Forward Process</a></li>
+                <li><a href="#technique3">Classical Denoising</a></li>
+                <li><a href="#technique4">One-step Denoising</a></li>
+                <li><a href="#technique5">Iterative Denoising</a></li>
+                <li><a href="#technique6">Diffusion Model Sampling</a></li>
+                <li><a href="#technique7">Classifier Free Guidance</a></li>
+                <li><a href="#technique8">Image To Image Translation</a></li>
+                <li><a href="#technique9">Non-Realistic Image Translation</a></li>
+                <li><a href="#technique10">Inpainting</a></li>
+                <li><a href="#technique11">Text Conditional Img2Img Translation </a></li>
+                <li><a href="#technique12">Visual Anagrams</a></li>
+                <li><a href="#technique13">Hybrid Images</a></li>
+                <li><a href="#technique14">Training Denoising UNet</a></li>
+                <li><a href="#technique15">Out Of Distribution Testing</a></li>
+                <li><a href="#technique17">Training Time Conditioned UNet</a></li>
+                <!-- Add more technique links as needed -->
+            </ul>
+        </nav>
+
+        <main id="content">
+            <div id="part1" class="section">
+                <h1>CS180 Project 5: The Power of Diffusion Models</h1>
+                <h2>Deniz Demirtas</h2>
+
+                <div class="content">
+                    <p>In this project, we are going to delve into the fundamental operating principles of diffusion
+                        models, and understand how does image generation with diffusion models work under the hood. To
+                        start off with, we
+                        are going to start with the DeepFloyd IF diffusion model. You can find more information about
+                        the model
+                        <a href="https://huggingface.co/docs/diffusers/api/pipelines/deepfloyd_if">here</a>.
+                    </p>
+                </div>
+            </div>
+
+            <div id="technique1" class="section">
+                <h2>DeepFloyd IF images</h2>
+                <div class="content">
+
+                    <p>To start off, let's see what the DeepFloyd IF model can generate with the precomputed text
+                        embeddings -
+                        which are numerical representations of text that capture the meaning and context of words.
+                        These embeddings allow the model to understand the relationship between text and images
+                        by converting words into a format that the model can process mathematically. For this process,
+                        we have used the seed: </p>
+
+                    <p>As you can see, for each prompt, we have created different versions with varying number of
+                        inference steps.
+                        Inference steps in diffusion models control how gradually the model transforms random noise
+                        into a coherent image. With fewer steps (like 9), the process is faster but may produce less
+                        refined results.
+                        Using more steps (like 50) allows for a more detailed and precise generation process,
+                        though it takes longer to compute.
+                    </p>
+
+                    <p>Here are some results generated by the DeepFloyd IF model with the seed=<code>31693169</code>.
+                    </p>
+
+                    <h4>prompt: an oil painting of a snowy mountain village</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Task0/task0-image0_9_.png">
+                            <p>num inference steps: 9</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task0/task0-image0_20_.png">
+                            <p>num inference steps: 20</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task0/task0-image0_50_.png">
+                            <p>num inference steps: 50</p>
+                        </div>
+                    </div>
+
+                    <h4>prompt: a man wearing a hat</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Task0/task0-image1_9_.png">
+                            <p>num inference steps: 9</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task0/task0-image1_20_.png">
+                            <p>num inference steps: 20</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task0/task0-image1_50_.png">
+                            <p>num inference steps: 50</p>
+                        </div>
+                    </div>
+                    <h4>prompt: a rocketship</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Task0/task0-image2_9_.png">
+                            <p>num inference steps: 9</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task0/task0-image2_20_.png">
+                            <p>num inference steps: 20</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task0/task0-image2_50_.png">
+                            <p>num inference steps: 50</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="technique2" class="section">
+                <div class="content">
+                    <h1>Sampling Loops</h1>
+                    <h2>Forward Process</h2>
+
+                    <p>Before we get going with the implementation of the sampling loops, let's understand how
+                        the image
+                        generation
+                        pipeline works under the hood. In order to train our models, we first start off with
+                        clean
+                        images and then
+                        iteratively generate noisy versions of these images until we reach pure noise. Then, a
+                        diffusion
+                        model's goal is to
+                        learn how to reverse this process to generate clean images from pure noise.
+
+                        The diffusion model does so by learning the amount of noise that's added to it's input
+                        image
+                        through training.
+                        Then, during inference, we start off with a random noise pattern and iteratively predict
+                        the
+                        noise to denoise the initial image,
+                        to a point where we refined it to match the input prompt.
+                    </p>
+
+                    <p>As you learned from the above paragh, a key part of the pipeline is to be able to
+                        iteratively add
+                        noise to the initial
+                        clean image. This is achieved through the sampling loop, which we are going to implement
+                        from
+                        scratch.
+                    </p>
+
+                    <div class="math-formula">
+                        <p>$$x_t = \sqrt{\bar{\alpha}_t}x_0 + \sqrt{1 - \bar{\alpha}_t}\epsilon \quad
+                            \text{where} \quad
+                            \epsilon \sim \mathcal{N}(0, 1)$$</p>
+                    </div>
+
+                    <p>In this formula, given the clean image x₀, we get the noised version for timestep t by
+                        sampling
+                        from
+                        a Gaussian distribution with mean \(\sqrt{\bar{\alpha}_t}x_0\) and variance \(1 -
+                        \bar{\alpha}_t\).
+                    </p>
+
+                    <p>Now, let's observe some results from our implementation of the sampling loop.</p>
+
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/input.png">
+                            <p>clean image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.1/noised_250.png">
+                            <p>noised image at timestep 250</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.1/noised_500.png">
+                            <p>noised image at timestep 500</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.1/noised_750.png">
+                            <p>noised image at timestep 750</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique3" class="section">
+                <div class="content">
+
+                    <h2>Classical Denoising</h2>
+
+                    <p>Now that we are able to noise our images, let's work on denoising them. To start off with, let's
+                        try
+                        the classical denoising approach - gaussian blur.
+                    </p>
+
+                    <p>Gaussian blur is a fundamental image processing technique that smooths out an image by averaging
+                        each pixel with its neighboring pixels.
+                        The averaging is done using a Gaussian distribution - meaning pixels closer to the center have
+                        more influence
+                        than those further away. This process effectively reduces noise and detail in the image, as
+                        sharp transitions
+                        between pixels are softened. Think of it like looking at an image through frosted glass - the
+                        details become less distinct and blend together smoothly.</p>
+
+
+                    <h4>hover over the images to see the noised version</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper hover-enabled">
+                            <img class="default" src="media/Task1.2/denoised_250.png"
+                                alt="denoised image at timestep 250">
+                            <img class="hover" src="media/Task1.1/noised_250.png" alt="noised image at timestep 250">
+                            <p>denoised image at timestep 250</p>
+                        </div>
+                        <div class="image-wrapper hover-enabled">
+                            <img class="default" src="media/Task1.2/denoised_500.png"
+                                alt="denoised image at timestep 500">
+                            <img class="hover" src="media/Task1.1/noised_500.png" alt="denoised image at timestep 500">
+                            <p>denoised image at timestep 500</p>
+                        </div>
+                        <div class="image-wrapper hover-enabled">
+                            <img class="default" src="media/Task1.2/denoised_750.png"
+                                alt="denoised image at timestep 750">
+                            <img class="hover" src="media/Task1.1/noised_750.png" alt="noised image at timestep 750">
+                            <p>denoised image at timestep 750</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique4" class="section">
+                <div class="content">
+                    <h2>One-step Denoising</h2>
+                    <p>Now, instead of gaussian blur we are going to use a pretrained diffusion model to denoise our
+                        images.The Unet we are going to use has been trained on a dataset for predicting the amount of
+                        noise
+                        added to the input image. Therefore, we are going to use it to predict the noise in our noised
+                        images.
+                        Then, subtract the predicted noise from the noised image to get the denoised image, or as close
+                        as we can get to
+                        the original clean image.</p>
+
+                    <p>This model has been trained to predict the noise at a given timestep, therefore, we are going to
+                        provide
+                        the noised image at time=t and subtract the predicted noise from it to get the denoised image,
+                        x_0.
+                    </p>
+
+                    <h4>Hover over the images to see the denoised version</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper hover-enabled">
+                            <img class="default" src="media/Task1.3/1.3_noisy_250.png"
+                                alt="denoised image at timestep 250">
+                            <img class="hover" src="media/Task1.3/1.3_clean_estimate_250.png"
+                                alt="noised image at timestep 250">
+                            <p>denoised image at timestep 250</p>
+                        </div>
+                        <div class="image-wrapper hover-enabled">
+                            <img class="default" src="media/Task1.3/1.3_noisy_500.png"
+                                alt="denoised image at timestep 500">
+                            <img class="hover" src="media/Task1.3/1.3_clean_estimate_500.png"
+                                alt="denoised image at timestep 500">
+                            <p>denoised image at timestep 500</p>
+                        </div>
+                        <div class="image-wrapper hover-enabled">
+                            <img class="default" src="media/Task1.3/1.3_noisy_750.png"
+                                alt="denoised image at timestep 750">
+                            <img class="hover" src="media/Task1.3/1.3_clean_estimate_750.png"
+                                alt="noised image at timestep 750">
+                            <p>denoised image at timestep 750</p>
+                        </div>
+                    </div>
+                    <p>In addition to the improved results from gaussian denoising, one interesting artifact is the
+                        "change" in imagery for timestep=750. This causes from the fact that we are trying to estimate
+                        the clean image
+                        from such a noisy image that the model can't get the exact details right, but instead, gets a
+                        close approximation from the
+                        natural image manifold.
+                    </p>
+                </div>
+            </div>
+            <div id="technique5" class="section">
+                <div class="content">
+                    <h2>Iterative Denoising</h2>
+                    <div class="content">
+                        <p>
+                            Although the one-step denoising approach has improved the results, it is still not perfect
+                            because it's
+                            not how diffusion models are designed to work. Diffusion models are designed to
+                            <strong>iteratively</strong> denoise the image. However, the longer the iteration process,
+                            the more costly it gets. However, we can speed this by skipping steps.
+                        </p>
+
+                        <p>
+                            In that case, for every step, the following is the iterative denoising formula:
+                        <p>
+
+                        <div class="math-formula">
+                            <p>$$x_{t'} = \frac{\sqrt{\bar{\alpha}_{t'}\beta_t}}{1 - \bar{\alpha}_t} x_0 +
+                                \frac{\sqrt{\alpha_t(1 - \bar{\alpha}_{t'})}}{1 - \bar{\alpha}_t} x_t + v_\sigma$$</p>
+                        </div>
+                        <p>where:</p>
+                        <ul>
+                            <li>\(x_t\) is image at timestep \(t\)</li>
+                            <li>\(x_{t'}\) is your noisy at timestep \(t'\) where \(t' < t\) (less noisy)</li>
+                            <li>\(\bar{\alpha}_{t'}\) is defined by <code>alphas_cumprod</code>, which is the cumulative
+                                product of noise scaling factors at each timestep.</li>
+                            </li>
+                            <li>\(\alpha_t = \frac{\bar{\alpha}_t}{\bar{\alpha}_{t'}}\)</li>
+                            <li>\(\beta_t = 1 - \alpha_t\)</li>
+                            <li>\(x_0\) estimate of the clean image </li>
+                        </ul>
+                        <p>In order to generate the below results, we noise the input image up to a certain timestep,
+                            not to
+                            pure noise. Then, denoise iteratively until we reach timestep=0.
+                        </p>
+
+                        <h4>Here are every fifth step of the iterative denoising: </h4>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/Task1.4/1.4_iterative_denoised_iter_690.png">
+                                <p>timestep 690</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.4/1.4_iterative_denoised_iter_540.png">
+                                <p>timestep 540</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.4/1.4_iterative_denoised_iter_390.png">
+                                <p>timestep 390</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.4/1.4_iterative_denoised_iter_240.png">
+                                <p>timestep 240</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.4/1.4_iterative_denoised_iter_90.png">
+                                <p>timestep 90</p>
+                            </div>
+                        </div>
+                        <h4>Hover over to compare the denoising results: </h4>
+                        <div class="image-container">
+                            <div class="image-wrapper hover-enabled">
+                                <img class="default" src="media/Task1.4/1.4_iterative_denoised_cleaned.png"
+                                    alt="denoised image at timestep 690">
+                                <img class="hover" src="media/input.png" alt="input image">
+                                <p>Iterative denoising clean estimate</p>
+                            </div>
+                            <div class="image-wrapper hover-enabled">
+                                <img class="default" src="media/Task1.4/clean_estimate_750.png"
+                                    alt="denoised image at timestep 390">
+                                <img class="hover" src="media/input.png" alt="noised image at timestep 390">
+                                <p>One step denoising clean estimate</p>
+                            </div>
+                            <div class="image-wrapper hover-enabled">
+                                <img class="default" src="media/Task1.1/noised_250.png"
+                                    alt="denoised image at timestep 90">
+                                <img class="hover" src="media/input.png" alt="noised image at timestep 90">
+                                <p>Gaussian blur denoising clean estimate</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique6" class="section">
+                <div class="content">
+                    <h2>Diffusion Model Sampling</h2>
+                    <div class="content">
+                        <p>
+                            In comparison to the above section, in this section, we are going to see what we can achieve
+                            if we start off with pure noise instead partially noised input image. If we start with pure
+                            noise,
+                            we can sample images according to our conditioning prompt, more on that later in the
+                            project. For now, our
+                            conditioning signal (prompt) will be <code>a high quality photo</code>.
+                        </p>
+
+                        <h4>Here are the results:</h4>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/Task1.5/generated_image_0.png">
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.5/generated_image_1.png">
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.5/generated_image_2.png">
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.5/generated_image_3.png">
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.5/generated_image_4.png">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique7" class="section">
+                <div class="content">
+                    <h2>Classifier Free Guidance (CFG)</h2>
+                    <div class="content">
+                        <p>
+                            The results above are not great, indeed, some of them doesn't convey any meaning. A method
+                            that
+                            we can employ to improve our results in a technique called <strong>Classifier Free Guidance
+                                (CFG)</strong>.
+                        </p>
+
+                        <p>In the previous section, we based our optimization only on the conditioned noise prediction
+                            ε_c.
+                            With CFG, we introduce a parameter ε_u, that is the <strong>unconditioned</strong> noise
+                            estimate. We then combine the two with the following formula,
+                        </p>
+
+                        <div class="math-formula">
+                            <p>$$ \epsilon = \epsilon_c + \gamma(\epsilon_c - \epsilon_u) $$</p>
+                        </div>
+
+                        <p>As you see, $$\gamma = 0$$ gives us the conditioned noise signal like the above section,
+                            $$\gamma = 1$$ gives us the unconditioned noise signal. However, when $$\gamma > 1$$ we
+                            then
+                            witness the
+                            improvements in our results.
+                        </p>
+
+                        <h4>Here are couple examples</h4>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/Task1.6/1.6_iterative_denoise_generated_image_0.png">
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.6/1.6_iterative_denoise_generated_image_1.png">
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.6/1.6_iterative_denoise_generated_image_2.png">
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.6/1.6_iterative_denoise_generated_image_3.png">
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.6/1.6_iterative_denoise_generated_image_4.png">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div id="technique8" class="section">
+                <div class="content">
+                    <h2>Image To Image Translation</h2>
+                    <div class="content">
+                        <p>
+                            In previous sections, we have noised then denoised the input campanile image, which ended up
+                            giving us outputs,
+                            in which edits were made on the input image. The reason for that is, from the amount of
+                            noise we added to the image, the model is able to only recover a certain amount of details.
+
+                            For the portions that it can't recover, it "hallucinates" the details, in an appropriate
+                            manner to force the image to be back on the natural image manifold.
+                        </p>
+
+                        <p>In this section, we are going to observe the results of this "hallucination" process by
+                            noising our input image
+                            to different amounts and observing the results of the respective denoising processes.
+                            Remember, the more noise we add, the more the model hallucinates. The earlier the step is,
+                            the more noise
+                            we have added.
+                        </p>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/input.png">
+                                <p>Input Image</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_im_denoised_1.png">
+                                <p>Step 1</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_im_denoised_3.png">
+                                <p>Step 3</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_im_denoised_5.png">
+                                <p>Step 5</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_im_denoised_7.png">
+                                <p>Step 7</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_im_denoised_10.png">
+                                <p>Step 10</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_im_denoised_20.png">
+                                <p>Step 20</p>
+                            </div>
+                        </div>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_image_1.jpg">
+                                <p>Input Image</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_1_denoised_1.png">
+                                <p>Step 1</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_1_denoised_3.png">
+                                <p>Step 3</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_1_denoised_5.png">
+                                <p>Step 5</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_1_denoised_7.png">
+                                <p>Step 7</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_1_denoised_10.png">
+                                <p>Step 10</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_1_denoised_20.png">
+                                <p>Step 20</p>
+                            </div>
+                        </div>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_image_2.jpg">
+                                <p>Input Image</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_2_denoised_1.png">
+                                <p>Step 1</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_2_denoised_3.png">
+                                <p>Step 3</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_2_denoised_5.png">
+                                <p>Step 5</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_2_denoised_7.png">
+                                <p>Step 7</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_2_denoised_10.png">
+                                <p>Step 10</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_2_denoised_20.png">
+                                <p>Step 20</p>
+                            </div>
+                        </div>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_image_3.jpg">
+                                <p>Input Image</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_3_denoised_1.png">
+                                <p>Step 1</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_3_denoised_3.png">
+                                <p>Step 3</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_3_denoised_5.png">
+                                <p>Step 5</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_3_denoised_7.png">
+                                <p>Step 7</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_3_denoised_10.png">
+                                <p>Step 10</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_3_denoised_20.png">
+                                <p>Step 20</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7/1.7_test_im_3_denoised_25.png">
+                                <p>Step 25</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique9" class="section">
+                <div class="content">
+                    <h2>Hand-Drawn Image Translation</h2>
+                    <div class="content">
+                        <p>
+                            Now we are going to run the same pipeline on non-realistic images instead of realistic
+                            inputs to see how the model behaves.
+                        </p>
+
+                        <h4>Here are the results:</h4>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.1_handdrawn1.jpeg">
+                                <p>Input Image</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn1_denoised_1.png">
+                                <p>Step 1</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn1_denoised_3.png">
+                                <p>Step 3</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn1_denoised_5.png">
+                                <p>Step 5</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn1_denoised_7.png">
+                                <p>Step 7</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn1_denoised_10.png">
+                                <p>Step 10</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn1_denoised_20.png">
+                                <p>Step 20</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn1_denoised_25.png">
+                                <p>Step 25</p>
+                            </div>
+                        </div>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.1_handdrawn2.jpeg">
+                                <p>Input Image</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn2_denoised_1.png">
+                                <p>Step 1</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn2_denoised_3.png">
+                                <p>Step 3</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn2_denoised_5.png">
+                                <p>Step 5</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn2_denoised_7.png">
+                                <p>Step 7</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn2_denoised_10.png">
+                                <p>Step 10</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn2_denoised_20.png">
+                                <p>Step 20</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn2_denoised_25.png">
+                                <p>Step 25</p>
+                            </div>
+                        </div>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.1_handdrawn3.jpeg">
+                                <p>Input Image</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn3_denoised_1.png">
+                                <p>Step 1</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn3_denoised_3.png">
+                                <p>Step 3</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn3_denoised_5.png">
+                                <p>Step 5</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn3_denoised_7.png">
+                                <p>Step 7</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn3_denoised_10.png">
+                                <p>Step 10</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn3_denoised_20.png">
+                                <p>Step 20</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn3_denoised_25.png">
+                                <p>Step 25</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_handdrawn3_denoised_30.png">
+                                <p>Step 30</p>
+                            </div>
+                        </div>
+                        <div class="image-container">
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.1_web_sketch_2.jpeg">
+                                <p>Input Image</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_web_image_denoised_1.png">
+                                <p>Step 1</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_web_image_denoised_3.png">
+                                <p>Step 3</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_web_image_denoised_5.png">
+                                <p>Step 5</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_web_image_denoised_7.png">
+                                <p>Step 7</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_web_image_denoised_10.png">
+                                <p>Step 10</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_web_image_denoised_20.png">
+                                <p>Step 20</p>
+                            </div>
+                            <div class="image-wrapper">
+                                <img src="media/Task1.7.1/1.7.2_web_image_denoised_25.png">
+                                <p>Step 25</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div id="technique10" class="section">
+                <div class="content">
+                    <h2>Inpainting</h2>
+
+                    <p>Now, we can use the same pipeline with modifications (to follow the <a
+                            href="https://arxiv.org/abs/2201.09865">RePaint</a> paper) to implement inpaintings. </p>
+                    <p>That is, given a starting image and a binary mask, we can create new content for the parts of the
+                        mask where it's 1, and paste the
+                        existing content to the masked out portions. For this, we can use the same pipeline and generate
+                        x_t, then,
+                        only retreieve the masked out portions. For the rest of the image, we generate the noisy image
+                        at the timestep that we are at, and force
+                        them on to the current image at t.
+                    </p>
+
+                    <h4>Here are the results:</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/input.png">
+                            <p>Input Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_test_im_10.png">
+                            <p>Step 10</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_test_im_11.png">
+                            <p>Step 11</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_test_im_13.png">
+                            <p>Step 13</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_test_im_15.png">
+                            <p>Step 15</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_test_im_17.png">
+                            <p>Step 17</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_test_im_20.png">
+                            <p>Step 20</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_input3.webp">
+                            <p>Input Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input3_2.png">
+                            <p>Step 2</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input3_3.png">
+                            <p>Step 3</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input3_5.png">
+                            <p>Step 5</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input3_7.png">
+                            <p>Step 7</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input3_17.png">
+                            <p>Step 17</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_input4.jpg">
+                            <p>Input Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input4_2.png">
+                            <p>Step 2</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input4_5.png">
+                            <p>Step 5</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input4_7.png">
+                            <p>Step 7</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input4_8.png">
+                            <p>Step 17</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input4_20.png">
+                            <p>Step 20</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.2/1.7.2_inpainted_input4_23.png">
+                            <p>Step 23</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div id="technique11" class="section">
+                <div class="content">
+                    <h2>Text Conditional Image to Image Translation</h2>
+
+                    <p>Now, we will repeat the task in the above Image to Image Translation section. However, this time
+                        we won't operate on the unconditioned
+                        noise signal, but instead, condition on a text prompt. That's why now we aren't purely
+                        projecting on to the natural image manifold, but instead,
+                        we are projecting on to a more complex space which is conditioned on the text prompt.
+                    </p>
+
+                    <h4>Here are the results:</h4>
+                    <h5>Prompt: An oil painting of an old man</h5>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_input1.jpeg">
+                            <p>Input Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_1_denoised_1.png">
+                            <p>Step 1</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_1_denoised_3.png">
+                            <p>Step 3</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_1_denoised_5.png">
+                            <p>Step 5</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_1_denoised_7.png">
+                            <p>Step 7</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_1_denoised_10.png">
+                            <p>Step 10</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_1_denoised_20.png">
+                            <p>Step 20</p>
+                        </div>
+                    </div>
+                    <h5>Prompt: A pencil</h5>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_input3.jpg">
+                            <p>Input Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_3_denoised_1.png">
+                            <p>Step 1</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_3_denoised_3.png">
+                            <p>Step 3</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_3_denoised_5.png">
+                            <p>Step 5</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_3_denoised_7.png">
+                            <p>Step 7</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_3_denoised_10.png">
+                            <p>Step 10</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_3_denoised_20.png">
+                            <p>Step 20</p>
+                        </div>
+                    </div>
+                    <h5>Prompt: A rocketship</h5>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/input.png">
+                            <p>Input Image</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_denoised_1.png">
+                            <p>Step 1</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_denoised_3.png">
+                            <p>Step 3</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_denoised_5.png">
+                            <p>Step 5</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_denoised_7.png">
+                            <p>Step 7</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_denoised_10.png">
+                            <p>Step 10</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.7.3/1.7.3_test_im_denoised_20.png">
+                            <p>Step 20</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique12" class="section">
+                <div class="content">
+                    <h2>Visual Anagrams</h2>
+
+                    <p>Now, in this part, we are going to creatae optical illusions with diffusion models. Our first
+                        illusion will be visual anagrams. That is,
+                        images that have two different content encoded when observed from different orientations. For
+                        this section,
+                        we are going to encode two different images in the two vertical directions. That is, the content
+                        observed will be
+                        different when the image is flipped vertically.
+                    </p>
+
+                    <p>In order to achieve this, we are going to predict two different noise estimates for the normal
+                        and flipped versions of the image
+                        respectively. Then, we are going to average them out and then use the averaged error in our
+                        optimization. </p>
+                    <p>Here is the formula for the noise prediction:</p>
+                    <p>\[\epsilon_1 = \text{UNet}(x_t, t, p_1)\]</p>
+                    <p>\[\epsilon_2 = \text{flip}(\text{UNet}(\text{flip}(x_t), t, p_2))\]</p>
+                    <p>\[\epsilon = \frac{(\epsilon_1 + \epsilon_2)}{2}\]</p>
+
+                    <h4>Hover over the images to see the flipped version:</h4>
+
+                    <div class="image-container">
+                        <div class="image-wrapper hover-enabled">
+                            <img class="default" src="media/Task1.8/anagram_1.png" alt="Input Image">
+                            <img class="hover flip-vertical" src="media/Task1.8/anagram_1.png" alt="Flipped Image">
+                            <p data-hover-text="an oil painting of an old man">an oil painting of people around a
+                                campfire</p>
+                        </div>
+                        <div class="image-wrapper hover-enabled">
+                            <img class="default" src="media/Task1.8/anagram_2.1.png" alt="Input Image">
+                            <img class="hover flip-vertical" src="media/Task1.8/anagram_2.1.png" alt="Flipped Image">
+                            <p data-hover-text="photo of a woman in a green long dress">photo of a green flourishing
+                                tree</p>
+                        </div>
+                        <div class="image-wrapper hover-enabled">
+                            <img class="default" src="media/Task1.8/anagram_3-3.png" alt="Input Image">
+                            <img class="hover flip-vertical" src="media/Task1.8/anagram_3-3.png" alt="Flipped Image">
+                            <p data-hover-text="photo of an old man smoking a cigar">photo of a burning tree</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique13" class="section">
+                <div class="content">
+                    <h2>Hybrid Images</h2>
+
+                    <p>Another optical illusion we can create is hybrid images. That is, images were two different
+                        content are encoded and interpreted when observed from different distances. This is possible
+                        because the different content
+                        encoding lies in the lower and higher frequencies of the image respectively. In order to achieve
+                        this, we have followed and implemented the <a href="https://arxiv.org/abs/2404.11615">Factorized
+                            Diffusion</a> paper. </p>
+
+                    <p>Similar to the above section, we are generating two different error esimations for our two
+                        different prompts. Then, we are creating our final error estimation by adding the lower
+                        frequencies of one error
+                        estimation to the higher frequencies of the other error estimation, and optimizing for the
+                        result. We used a gaussian filter as our low pass filter.</p>
+
+                    <h4>Here are the results:</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Task1.9/hybrid.png">
+                            <p>Waterfall from up close, skull from a distance</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.9/hybrid21.png">
+                            <p>Bouquet of flowers from up close, a tiger's face from a distance</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Task1.9/hybrid22_2.png">
+                            <p>A cabin in the woods from up close, photo of a man wearing a hat from a distance</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique14" class="section">
+                <div class="content">
+                    <h2>Training a Single-Step Denoising UNet</h2>
+
+                    <p>In the previous sections, we have built our pipelines over the abstraction that we had a
+                        pre-trained UNet denoiser. Now, we are going to
+                        get our hands dirty and train our denoiser. The following is the architecture of the UNet we
+                        are going to implement and train.
+                    </p>
+
+                    <div class="image-wrapper">
+                        <img src="media/pure_UNet.png">
+                    </div>
+
+                    <p>For our training, we are going to optimize over an L2 loss in which we try to minize the distance
+                        between
+                        the predicted clean image versus the ground truth clean image. We are going to create the noisy
+                        images to predict from via
+                        adding gaussian noise to clear images from the dataset.
+                    </p>
+
+                    <p>Here are some example images of how the noisy images we generate for training look like:</p>
+
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/B1.2/noisy_images_subplot.png">
+                        </div>
+                    </div>
+
+                    <p>Now, we going to train the UNet for $$\sigma = 0.5$$ with batch size 256, learning rate 1e-4 with
+                        the
+                        adam optimizer, and with 128 hidden dimensions for 5 epochs.
+                    </p>
+
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/B1.2.1/test_results_1.png">
+                            <p>Epoch 1</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/B1.2.1/test_results_5.png">
+                            <p>Epoch 5</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/B1.2.1/MNIST_training_loss.png">
+                            <p>Training Loss Curve</p>
+                        </div>
+
+                    </div>
+
+
+                </div>
+            </div>
+            <div id="technique15" class="section">
+                <div class="content">
+                    <h2>Out Of Distribution Testing</h2>
+
+                    <p>The denoiser we trained in the previous step has been trained for images noised with \(\sigma =
+                        0.5\). Let's see how it performs on images noised with different sigmas.</p>
+
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/B1.2.2/test_results_grid.png">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique16" class="section">
+                <div class="content">
+                    <h2>Training a Diffusion Model</h2>
+
+                    <p>Now that we have our denoiser working, we are ready to implement the diffusion model, following
+                        the <a href="https://arxiv.org/abs/2006.11239">DDPM paper</a>.</p>
+
+                    <p>One difference from previous steps is that, now, instead of predicting the clean image with our
+                        denoiser, we are going to optimize it over L2 loss again but this time predict the noise added
+                        at the
+                        given timestep. Then, "subtract" the noise from the image at the timestep to iteratively denoise
+                        our image.
+                    </p>
+
+                    <p>The derivation of the image x_t at timestep t is given by:</p>
+                    <p>\[x_t = \sqrt{\bar{\alpha}_t} x_0 + \sqrt{1 - \bar{\alpha}_t} \epsilon\]</p>
+                    <p>where \(\epsilon\) is N(0, 1).</p>
+
+                    <p>However, our previouly trained UNet was trained for a set noise variance. However, in reality,
+                        the noise variance varies with the input t. Therefore,
+                        we need to build the notion of time into our model. For that we are going to add time
+                        conditioning to our model.
+                    </p>
+                </div>
+            </div>
+            <div id="technique17" class="section">
+                <div class="content">
+                    <h2>Time Conditioned UNet</h2>
+
+                    <p>Following the course staff suggestion, I have decided to add time conditoning to my existing
+                        implementation by adding two fully connected layers that takes the scalar
+                        time value and transforms it into a higher-dimensional representation that can be effectively
+                        combined with the image features throughout the network. This transformation helps the model
+                        understand how much noise to remove at each timestep as model now has a conception of time
+                        during training.
+                    </p>
+
+                    <p>The Fully Connected layers inject the conditoning signal into the following part of the model:
+                    </p>
+
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/time_cond_UNet.png">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique18" class="section">
+                <div class="content">
+                    <h2>Training the Time Conditioned UNet</h2>
+
+                    <p>Now, we can train our time conditioned UNet by following the below algorithm with the following
+                        information:
+
+                        batch size = 128, initial learning rate = 1e-3, optimizer = adam, gamma (lr decay schedule) =
+                        0.1^(1/20), 20 epochs, hidden dimensions = 64
+                    </p>
+
+                    <p>Here are the results:</p>
+
+                    <p>Epoch 5</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/B2.3/2time_cond_denoising_epoch5.gif">
+                            <p>Epoch 5</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/B2.3/2time_cond_denoising_epoch20.gif">
+                            <p>Epoch 20</p>
+                        </div>
+                    </div>
+                    <p>Training Loss Curve</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/B2.2/time_cond_training20_plot.png">
+                            <p>Training Loss Curve</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="technique19" class="section">
+                <div class="content">
+                    <h2>Class Conditioned UNet</h2>
+
+                    <p>The previous samples are generated from pure noise without any labels, that is, they are
+                        technically at random. Now, in order
+                        to have more control over the generated images, we are going to condition the model on the class
+                        labels of the images.
+                    </p>
+
+                    <p>In order to do this, we are going to add a new fully connected layer to our model that takes the
+                        class label as input and transforms it into a higher-dimensional
+                        representation that can be effectively combined with the image features throughout the network.
+                        We are going to one-hot encode the class labels
+                        and drop the labelling with probability 0.1 in order to ensure it works without being strictly
+                        conditioned on the class labels.
+                    </p>
+
+                    <p>As for the sampling process, it's the same as before, only with the addition o
+                        f CFG in order to
+                        get better results. We have used the same hyperparameters as before.</p>
+
+                    <h4>Here are the results:</h4>
+
+
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/B2.4/class_condresult_5_clamped.gif">
+                            <p>Epoch 5</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/B2.4/class_cond_result_20_normalized.gif">
+                            <p>Epoch 20</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/B2.4/ep5frame.png">
+                            <p>Epoch 5</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/B2.4/ep20frame.png">
+                            <p>Epoch 20</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/class_cond_error.png">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('#sidebar a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Fade-in animation for sections
+        const sections = document.querySelectorAll('.section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const images = document.querySelectorAll("img");
+
+            images.forEach(function (img) {
+                img.addEventListener("click", function () {
+                    createFullscreenView(img);
+                });
+            });
+        });
+
+        function createFullscreenView(img) {
+            // Create container
+            const container = document.createElement('div');
+            container.className = 'fullscreen-container';
+
+            // Create close button
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'fullscreen-close';
+            closeBtn.innerHTML = '×';
+
+            // Create zoom controls
+            const zoomControls = document.createElement('div');
+            zoomControls.className = 'zoom-controls';
+
+            const zoomInBtn = document.createElement('button');
+            zoomInBtn.className = 'zoom-button';
+            zoomInBtn.innerHTML = '+';
+
+            const zoomOutBtn = document.createElement('button');
+            zoomOutBtn.className = 'zoom-button';
+            zoomOutBtn.innerHTML = '−';
+
+            zoomControls.appendChild(zoomInBtn);
+            zoomControls.appendChild(zoomOutBtn);
+
+            // Clone the image
+            const fullImg = img.cloneNode(true);
+            fullImg.style.transform = 'scale(1)';
+
+            // Add elements to container
+            container.appendChild(fullImg);
+            container.appendChild(closeBtn);
+            container.appendChild(zoomControls);
+            document.body.appendChild(container);
+
+            // Variables for panning
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+            let scale = 1;
+
+            // Drag functionality
+            container.addEventListener('mousedown', dragStart);
+            container.addEventListener('mousemove', drag);
+            container.addEventListener('mouseup', dragEnd);
+            container.addEventListener('mouseleave', dragEnd);
+
+            // Touch events for mobile
+            container.addEventListener('touchstart', dragStart);
+            container.addEventListener('touchmove', drag);
+            container.addEventListener('touchend', dragEnd);
+
+            // Zoom functionality
+            zoomInBtn.addEventListener('click', () => {
+                scale *= 1.2;
+                fullImg.style.transform = `scale(${scale})`;
+            });
+
+            zoomOutBtn.addEventListener('click', () => {
+                scale = Math.max(0.5, scale / 1.2);
+                fullImg.style.transform = `scale(${scale})`;
+            });
+
+            // Mouse wheel zoom
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                    scale *= 1.1;
+                } else {
+                    scale = Math.max(0.5, scale / 1.1);
+                }
+                fullImg.style.transform = `scale(${scale})`;
+            });
+
+            // Close button functionality
+            closeBtn.addEventListener('click', () => {
+                document.body.removeChild(container);
+            });
+
+            // ESC key to close
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(container);
+                }
+            });
+
+            function dragStart(e) {
+                if (e.type === "touchstart") {
+                    initialX = e.touches[0].clientX - xOffset;
+                    initialY = e.touches[0].clientY - yOffset;
+                } else {
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                }
+
+                if (e.target === fullImg) {
+                    isDragging = true;
+                }
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+
+                    if (e.type === "touchmove") {
+                        currentX = e.touches[0].clientX - initialX;
+                        currentY = e.touches[0].clientY - initialY;
+                    } else {
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                    }
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    fullImg.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) scale(${scale})`;
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+        }
+    </script>
+
+    <script>
+        document.querySelectorAll('.image-wrapper.hover-enabled').forEach(wrapper => {
+            const pTag = wrapper.querySelector('p');
+            console.log('Wrapper:', wrapper);
+            console.log('pTag:', pTag);
+
+            if (pTag) {
+                const originalText = pTag.textContent;
+                const hoverText = pTag.getAttribute('data-hover-text');
+
+                wrapper.addEventListener('mouseenter', () => {
+                    console.log('Mouse entered');
+                    pTag.textContent = hoverText;
+                });
+
+                wrapper.addEventListener('mouseleave', () => {
+                    console.log('Mouse left');
+                    pTag.textContent = originalText;
+                });
+            } else {
+                console.error('No <p> tag found in wrapper:', wrapper);
+            }
+        });
+    </script>
+
+    <script>
+        document.querySelectorAll('.video-container').forEach(container => {
+            const video = container.querySelector('.video');
+            const isReverse = video.classList.contains('reverse-video');
+            const frameRate = 30;
+
+            container.addEventListener('mouseenter', () => {
+                if (isReverse) {
+                    video.currentTime = video.duration;
+                    playReverse();
+                } else {
+                    video.currentTime = 0;
+                    video.play();
+                }
+            });
+
+            container.addEventListener('mouseleave', () => {
+                if (isReverse) {
+                    clearInterval(video.dataset.reverseInterval);
+                }
+                video.pause();
+                video.currentTime = isReverse ? video.duration : 0;
+            });
+
+            function playReverse() {
+                video.pause();
+                let time = video.duration;
+                const interval = setInterval(() => {
+                    if (time <= 0) {
+                        time = video.duration;
+                    }
+                    video.currentTime = time;
+                    time -= 1 / frameRate;
+                }, 1000 / frameRate);
+
+                video.dataset.reverseInterval = interval;
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.gif-container img').forEach(img => {
+                const originalSrc = img.src;
+
+                img.addEventListener('mouseenter', function () {
+                    // Store current src and replace with a blank data URL to pause
+                    img.dataset.originalSrc = img.src;
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    context.drawImage(img, 0, 0, img.width, img.height);
+                    img.src = canvas.toDataURL();
+                });
+
+                img.addEventListener('mouseleave', function () {
+                    // Restore original src to resume animation
+                    img.src = img.dataset.originalSrc;
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>
