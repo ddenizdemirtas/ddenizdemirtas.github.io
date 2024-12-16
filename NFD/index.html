@@ -408,6 +408,22 @@
                         implemented a learning rate scheduler
                         with gamma 0.1 and step size 5.</p>
 
+                    <p>One other modification that we did was to the loss function we used. Instead of using MSE as we
+                        did for the
+                        previous parts, we have decided to use cross-entropy loss instead as we didn't get satisfactory
+                        results from the MSE training approaches. We believe cross-entropy loss was a better choice than
+                        MSE for the task of predicting heatmaps because it treats the heatmaps as
+                        probability distributions rather than just pixel-wise intensity values. In landmark detection,
+                        the goal is to predict heatmaps where the pixel values encode the likelihood of a landmark’s
+                        position. Cross-entropy loss penalizes the difference between the predicted probability
+                        distribution and the ground-truth Gaussian heatmap more effectively by focusing on reducing
+                        errors where the target probabilities are high (e.g., near the landmark peak). In contrast, MSE
+                        equally penalizes all pixel-wise differences, including areas far from the landmark where values
+                        are already near zero, which can lead to slower convergence and less precise localization.
+                        Cross-entropy encourages sharper, peaked predictions and helps the model concentrate on
+                        accurately estimating the spatial distribution of landmarks, improving overall precision and
+                        robustness in landmark localization.
+                    </p>
                     <p>The last modification that was made was to increase the size of the
                         bounding box the dataset offers by 1.2, as the bounding box wasn't manually generated and the
                         algorithm used to generate was commonly cropping parts of the face. Before proceeding to the
