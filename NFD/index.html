@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project 5</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .flip-vertical {
+            transform: scaleY(-1);
+        }
+
+        .gif-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gif-container img {
+            display: block;
+            width: 100%;
+            transition: opacity 0.5s ease;
+        }
+
+        .gif-container .gif {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .gif-container:hover .gif {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .video-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-container video {
+            display: block;
+            width: 100%;
+            opacity: 1;
+        }
+
+        .video-container:not(:hover) video {
+            opacity: 0.99;
+        }
+
+        .video-container:hover video {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav id="sidebar">
+            <h3>Contents</h3>
+            <ul>
+                <li><a href="#technique1">Nose Tip Detection</a></li>
+                <li><a href="#technique2">Full Facial Keypoint Detection</a></li>
+                <li><a href="#technique3">Increasing the Model Size</a></li>
+                <li><a href="#technique4">Pixel-wise Landmark Classification</a></li>
+
+
+                <!-- Add more technique links as needed -->
+            </ul>
+        </nav>
+
+        <main id="content">
+            <div id="part1" class="section">
+                <h1>CS180 Final Project: Facial Keypoint Detection with Neural Networks</h1>
+                <h2>Deniz Demirtas - Tan Sarp Gerzile</h2>
+
+                <div class="content">
+                    <p>In this project, we are going to delve into the fundamental operating principles of diffusion
+                        models, and understand how does image generation with diffusion models work under the hood. To
+                        start off with, we
+                        are going to start with the DeepFloyd IF diffusion model. You can find more information about
+                        the model
+                        <a href="https://huggingface.co/docs/diffusers/api/pipelines/deepfloyd_if">here</a>.
+                    </p>
+                </div>
+            </div>
+
+            <div id="technique1" class="section">
+                <h2>Nose Tip Detection</h2>
+                <div class="content">
+
+                    <p>To start, we are going to train a "toy" model using the IMM Face Database for nose tip detection.
+                        We are going to cast the nose detection problem as a pixel coordinate regression problem. </p>
+
+                    <p>The CNN model we are going to start with is a simple 3 convolutional layer
+                        network with 16, 32, and 32 hidden layers for each. Each convolutional layer is followed by a
+                        ReLU activation function and then a max pooling layer. Then, the model is followed by 2 fully
+                        connected layers with 58 and 2
+                        hidden units respectively, where the first layer is followed by a ReLU activation function.
+
+                        For training, we are going to use the Adam optimizer with a learning rate of 1e-3.
+                    </p>
+
+                    <p>As for preparing the data, we load the images into grayscale, then normalize by converting the
+                        input data that's in uint8 [0, 255] to np.float32, in which they are centered
+                        around [-0.5, 0.5]. Here are some examples after initial processing with the landmark
+                        annotations for nose tips.
+                    </p>
+
+                    <h4>Images sampled from the training dataset after processing</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part1/Training Data/image_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part1/Training Data/image_1.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part1/Training Data/image_2.png">
+                        </div>
+                    </div>
+                </div>
+
+                <p>Here are the training and validation losses for the explained model for 10, 15, 20, and 25
+                    epochs.
+                </p>
+
+                <p>Training Loss</p>
+                <div class="image-container"
+                    style="width: 75%; margin: 0 auto; display: flex; justify-content: center;">
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Losses/training_loss_10_epochs.png">
+                        <p>10 Epoch Training Loss</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Losses/training_loss_15_epochs.png">
+                        <p>15 Epoch Training Loss</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Losses/training_loss_20_epochs.png">
+                        <p>20 Epoch Training Loss</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Losses/training_loss_25_epochs.png">
+                        <p>25 Epoch Training Loss</p>
+                    </div>
+                </div>
+
+                <p>Validation Loss</p>
+                <div class="image-container"
+                    style="width: 75%; margin: 0 auto; display: flex; justify-content: center;">
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Losses/validation_loss_10_epochs.png">
+                        <p>10 Epoch Validation Loss</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Losses/validation_loss_15_epochs.png">
+                        <p>15 Epoch Validation Loss</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Losses/validation_loss_20_epochs.png">
+                        <p>20 Epoch Validation Loss</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Losses/validation_loss_25_epochs.png">
+                        <p>25 Epoch Validation Loss</p>
+                    </div>
+                </div>
+
+                <p>From the results, we can see that the number of epochs don't offer a significant improvement in
+                    the model's performance. Therefore, for this part, we are going to use 20 epochs for training
+                    during hyperparameter search.
+                </p>
+
+                <p>Here are some predictions from the model. </p>
+
+                <div class="image-container">
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Predictions/prediction_6.png">
+                        <p>Prediction 0 (accurate)</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Predictions/prediction_4.png">
+                        <p>Prediction 1 (accurate)</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Predictions/prediction_7.png">
+                        <p>Prediction 2 (inaccurate)</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Predictions/prediction_5.png">
+                        <p>Prediction 3 (inaccurate)</p>
+                    </div>
+                </div>
+
+                <p>As you can see, the first two images we display acquire pretty satisying predictions. However,
+                    the
+                    last two has
+                    errors in their predictions. Our hyphotesis for the inaccurate predictions is that the model
+                    does
+                    perform poorly
+                    on images where the face isn't straight on the camera and/or in the cases where facial
+                    expressions
+                    are more pronounced. This is assumed to be due to the limited amount of data and the small
+                    size of the model.
+                </p>
+
+
+                <h2>Hyperparameter Search</h2>
+
+                <p>We start our hyperparameter search with exploring learning rates. We test the learning rates
+                    displayed on the
+                    below plot. No learning rate seems to work better than our initial selection.
+                </p>
+
+                <p> Then, we proceed with using a deeper model with 5 convolutional layers that double in the size of
+                    the hidden layers for
+                    every layer. However, the results also seem to show no credible improvement. The more shallow model
+                    is inclided to converge to a
+                    "safe" local minima that predicts the average nose tip.
+                </p>
+                <div class="image-container">
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Losses/lr_comparison.png">
+                        <p>Learning Rate Training Loss Comparison for 3 layer model</p>
+                    </div>
+                    <div class="image-wrapper">
+                        <img src="media/part1/model1/Losses/lr_comparison2.png">
+                        <p>Learning Rate Training Loss Comparison for 5 layer model</p>
+                    </div>
+                </div>
+
+            </div>
+            <div id="technique2" class="section">
+                <div class="content">
+                    <h2>Full Facial Keypoint Detection</h2>
+                    <p>In this part, we are going to extend the model to detect all the facial keypoints. We are going
+                        to run the training
+                        procedure on all 58 keypoints that the dataset provides. There are couple changes to the
+                        pipeline. To start off,
+                        we are going to be having larger input images of size 240x180 as well as data
+                        augmentation. Data augmentation is
+                        important as we have a small dataset and we don't want to overfit, augmentation enables us to
+                        have more
+                        data to train on.
+                    </p>
+                    <p>As for the augmentation, we are going to be applying random rotations in range of -15 to 15
+                        degrees,
+                        translation in range of -10 to 10 pixels, and color jittering, such as brightness and saturation
+                        where we vary the brightness and saturation by +- 25% with probability p=0.3. While doing so,
+                        it's important to apply the translational transformation to the keypoints as well. Trying to do
+                        so initially caused
+                        problems where we weren't able to align the keypoints with the transformed image. Upon
+                        investigating, it was found that the rotational matrix that's applied to the
+                        keypoints is problematic if
+                        the keypoints are not centered around the origin. This was a subtle issue as the computer vision
+                        libraries used to
+                        rotate the images are based on the assumption of rotating the image from the center. Therefore,
+                        we center the keypoints around the
+                        origin, apply the rotation,
+                        and then shift them back to their original position. For the training, we are going to use a
+                        learning
+                        rate of 1e-3 as it had worked decently well for the previous task.
+                    </p>
+
+                    <p>Here are some augmented samples from the dataset.</p>
+
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part2/samples/augmented_samples_3.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/samples/augmented_samples_4.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/samples/augmented_samples_6.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/samples/augmented_samples_9.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/samples/augmented_samples_1.png">
+                        </div>
+                    </div>
+
+                    <p>As for the architecture of our model, we are using a 5-layered convolutional model that has 256
+                        channels with two fully
+                        conntected layers of 128 and 116 hidden units respectively. The first fully connected layer is
+                        followed by a ReLU activation function, and the second layer is followed by a dropout layer with
+                        p=0.35 as
+                        we noticed that the model shows extreme tendency to overfit, most probably due to the small
+                        amount of data we have. </p>
+
+                    <p>Here are the progression of the training and validation losses for the model.</p>
+                    <p>Training Loss</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part2/Losses/full_facial_prediction_model1_10_training_loss_log.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Losses/full_facial_prediction_model1_training_loss.png">
+                        </div>
+                    </div>
+
+                    <p>Validation Loss</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part2/Losses/full_facial_prediction_model1_10_validation_loss_log.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Losses/full_facial_prediction_model1_validation_loss.png">
+                        </div>
+                    </div>
+
+
+
+                    <p>Here are the visualizations of the filters every other layer throughout the model</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part2/Filters/conv_filters_layer_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Filters/conv_filters_layer_1.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Filters/conv_filters_layer_2.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Filters/conv_filters_layer_4.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Filters/conv_filters_layer_6.png">
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part2/Filters/conv_filters_layer_8.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Filters/conv_filters_layer_10.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Filters/conv_filters_layer_12.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Filters/conv_filters_layer_14.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Filters/conv_filters_layer_15.png">
+                        </div>
+                    </div>
+
+                    <p>As you can see, we tend to have couple unused (dead) filters throughout our model. This is
+                        probably due to the lack of data and the overcomplexity of the model because the model doesn't
+                        need to
+                        activate all the filters to get a good prediction.
+                    </p>
+
+                    <p>Here are some predictions</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part2/Predictions/20_predictions_prediction_sample_34.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Predictions/20_predictions_prediction_sample_53.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Predictions/20_predictions_prediction_sample_124.png">
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part2/Predictions/20_predictions_prediction_sample_49.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Predictions/20_predictions_prediction_sample_141.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part2/Predictions/20_predictions_prediction_sample_147.png">
+                        </div>
+                    </div>
+
+                    <p>When observing the results, we can see that the model does relatively well on cases where the
+                        face is straight on the camera and the facial expressions are not too pronounced. However, the
+                        the model seems to be predicting the average keypoints when the face is rotated.
+                    </p>
+
+                </div>
+                <div id="technique3" class="section">
+                    <h2>Increasing the Model Size</h2>
+                    <p>In this part, we are going to increase the model size as well as using a quite larger dataset to
+                        see
+                        if we can improve the model's performance.
+                        As for our model, we are going to use a ResNet18 model with 18 layers, with minor changes to the
+                        initial convolution layer,
+                        to accmodate our grayscale images as well as adapting the output layer to match the number of
+                        keypoints. We are going to use the Adam
+                        optimizer with a learning rate of 1e-3. We are going to use the same data augmentation
+                        techniques as
+                        in the previous part. After training with the initial setup, unsatisfied with the results, we
+                        have
+                        implemented a learning rate scheduler
+                        with gamma 0.1 and step size 5.</p>
+
+                    <p>The last modification that was made was to increase the size of the
+                        bounding box the dataset offers by 1.2, as the bounding box wasn't manually generated and the
+                        algorithm used to generate was commonly cropping parts of the face. Before proceeding to the
+                        loss
+                        progression and predictions, let's observe some samples from our
+                        dataloader after augmentation.</p>
+
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part3/dataloader_samples/image_5.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part3/dataloader_samples/image_9.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part3/dataloader_samples/image_6.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part3/dataloader_samples/image_4.png">
+                        </div>
+                    </div>
+
+
+                    <h4>Loss Progression</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part3/Losses/part3_loss_epoch_10.png_training_loss_log.png">
+                            <p>Training Loss for 10 Epochs</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part3/Losses/part3_loss_epoch_10.png_validation_loss_log.png">
+                            <p>Validation Loss for 10 Epochs</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/part3/Losses/part3_loss_epoch_16.png_training_loss_log.png">
+                            <p>Training Loss for 16 Epochs</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part3/Losses/part3_loss_epoch_16.png_validation_loss_log.png">
+                            <p>Validation Loss for 16 Epochs</p>
+                        </div>
+                    </div>
+
+                    <h4>10 Epochs Predictions</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part3/Predictions/predictions_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part3/Predictions/predictions_2.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part3/Predictions/predictions_3.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part3/Predictions/predictions_9.png">
+                        </div>
+                    </div>
+
+                    <h4>16 Epochs Predictions</h4>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part3/Predictions/predictions_20_epoch_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/part3/Predictions/predictions_20_epoch_4.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part3/Predictions/predictions_20_epoch_7.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part3/Predictions/predictions_20_epoch_5.png">
+                        </div>
+                    </div>
+
+                    <p>Observing the predictions, it's safe to say that our model does quite a better
+                        job than the previos one that was trained on a limited dataset. Most of the results
+                        along the quality of the better predictions displayed. A common pattern we noticed
+                        for the inaccurate predictions is that they tend to share a 3 degrees of freedom
+                        on the orientation of the face. That is, for the faces where there is rotation on the y axis
+                        as well as the z axis, the model tends to get inaccurate. This could be explained by the fact
+                        that
+                        we can't augment the data to include such rotations if the data is limited for such examples.
+                    </p>
+
+                </div>
+                <div id="technique4" class="section">
+                    <h2>Pixel-wise Landmark Classification</h2>
+                    <p>In this part, we are going to turn the problem into a pixelwise classifciation problem from
+                        a pixel regression problem. That is, we are going to predict how likely it is for each pixel to
+                        be the keypoint. We are going to do so by placing 2D Gaussians over our landmark coordinates.
+                    </p>
+
+                    <p>For this part, we are going to use an U-Net model. The model will take the generated heatmaps as
+                        input and generate
+                        heatmap predictions. We then have to convert the heatmap predictions to the coordinates of the
+                        keypoints. For this,
+                        we have initially tested a softmax approach, an argmax approach, and a weighted argmax approach.
+                    </p>
+
+                    <p>The weighted argmax approach works by treating the heatmap predictions as probability
+                        distributions over the pixel grid, where the pixel intensities represent the likelihood of a
+                        landmark's location. Instead of simply selecting the pixel with the highest intensity (as done
+                        in the standard argmax approach), the weighted argmax computes a weighted average of all pixel
+                        coordinates, with the heatmap values acting as weights. As the weighted argmax considers the
+                        entire heatmap distribution, not just the single most confident pixel, it appeared to provide
+                        better results.
+                    </p>
+
+                    <p>For the generation of the gaussians, we have tried training on sigmas [7, 9, 11]. The larger
+                        sigmas
+                        turned to overlap the features' heatmaps. We believe this contributed to learning localizing
+                        quickly initially,
+                        however, the precision of the predictions was not as good as the other sigmas, and the loss
+                        converged quickly afterwards. With sigma=7, though loss started higher, we have seen a more
+                        consistent learning process. </p>
+
+                    <p>Here are some of the accumulated heatmaps that was used as the input of the model
+                    </p>
+
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part4/heatmaps2/training_heatmaps_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part4/heatmaps2/training_heatmaps_1.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part4/heatmaps2/training_heatmaps_2.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part4/heatmaps2/training_heatmaps_3.png">
+                        </div>
+                    </div>
+
+                    <p>As for the information on the parameters of our training. We have initially started learning with
+                        lr=1e-3,
+                        although it seemed to learn, the progress was slow. Therefore, we wanted to be able to start
+                        from a higher learning rate, however, enable model to make small improvements as the training
+                        progressed. That's why,
+                        we have implemented a learning rate scheduler with gamma = 0.1 and step size = 5, which enabled
+                        us to start
+                        with a learning rate of 5e-3.
+                    </p>
+
+                    <p>Here are the details of the loss</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part4/Loss/part4_loss_history_training_loss_log.png">
+                            <p>Training Loss</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part4/Loss/part4_loss_history_validation_loss_log.png">
+                            <p>Validation Loss</p>
+                        </div>
+                    </div>
+                    <p>Here are some of the predictions</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part4/Predictions/predictions_sample_2_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part4/Predictions/predictions_sample_5_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part4/Predictions/predictions_sample_6_0.png">
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/Part4/Predictions/predictions_sample_7_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/Part4/Predictions/predictions_sample_0_0.png">
+                        </div>
+                    </div>
+                    <p>From observing the results, we can see that the model is able to learn the surroinding landmarks
+                        of the face
+                        pretty accurately, especially compared to inner features such as mouth and nose. Our hyphotesis
+                        is that the although it showed
+                        satisfactory results to decrease sigma to 7 from 9 and 11, observing the heatmaps, the gaussians
+                        seem to overlap quite a lot, which makes
+                        it harder for the model to learn the exact location of the landmarks.
+                    </p>
+
+                    <h2>BW - Pixel-wise Landmark Classification with 0/1 mask heatmaps.</h2>
+
+                    <p>We wanted to evaluate the results with a 0-1 mask of the heatmaps generated
+                        from the coordinates of the landmarks. Since we had the previous deductions regarding the
+                        size of the gaussians from last part, we wanted to test this part with masks that have smaller
+                        radii, therefore, we used radius=3 for the masks we generated in this part.
+                    </p>
+
+                    <p>Here are some of the heatmaps</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/BW/Samples/training_heatmaps_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/BW/Samples/training_heatmaps_1.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/BW/Samples/training_heatmaps_2.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/BW/Samples/training_heatmaps_3.png">
+                        </div>
+                    </div>
+
+                    <p>As for the training and the model, we have kept everything the same as we deducted that our setup
+                        was satisfactory from the previous part. The weighted argmax approach of converting the heatmaps
+                        into the coordinates
+                        is now equivalent to calculating the centroid of the heatmaps and getting their center of mass
+                        to be
+                        the coordinates.
+                    </p>
+
+                    <p></p>
+
+                    <p>Here is the loss progression</p>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/BW/Loss/part4_loss_history_training_loss_log.png">
+                            <p>Training Loss</p>
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/BW/Loss/part4_loss_history_validation_loss_log.png">
+                            <p>Validation Loss</p>
+                        </div>
+                    </div>
+
+                    <p>From the loss progression, we can see a further decrease in the loss compared to the previous
+                        Gaussian
+                        based approach. Let's observe some of the predictions as well.
+                    </p>
+
+                    <p>Here are some of the predictions</p>
+
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/BW/Predictions/predictions_sample_0_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/BW/Predictions/predictions_sample_1_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/BW/Predictions/predictions_sample_4_0.png">
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img src="media/BW/Predictions/predictions_sample_5_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/BW/Predictions/predictions_sample_8_0.png">
+                        </div>
+                        <div class="image-wrapper">
+                            <img src="media/BW/Predictions/predictions_sample_3_0.png">
+                        </div>
+                    </div>
+
+                    <p>The results seems to be incredibly satisfactory, only output that wasn't as good as the rest of
+                        the predictions
+                        was a case where the shape of the face was heavily distorted because of the hands pulling the
+                        mouth (bottom right).
+                    </p>
+
+                    <p>
+                        Though the results are impressive and better than the Gaussian-based approach in this instance,
+                        we believe this comparison is not entirely credible. This is because decreasing the
+                        <strong>radius</strong> of the binary mask (compared to the sigma value used for the Gaussian)
+                        made a significant difference in our inputs, making the inner face landmarks much more
+                        identifiable. Therefore, as we lack a controlled and fair test case, we cannot definitively
+                        conclude which approach works better.
+                    </p>
+
+                    <p>
+                        However, our intuition aligns with the idea that the <strong>Gaussian-based approach</strong>
+                        would ultimately perform better, particularly with appropriately small sigma values. This
+                        intuition stems from the fact that the Gaussian-based heatmaps carry <em>more information</em>
+                        about the spatial distribution of a landmark's probability.
+                    </p>
+
+                    <h4>Distinction Between Methods:</h4>
+
+                    <ul>
+                        <li>
+                            <strong>Binary Mask Approach:</strong>
+                            <p>
+                                When applying the weighted argmax method to a binary mask, the weights are either 1
+                                (inside the mask) or 0 (outside). Mathematically, this reduces to calculating the
+                                <strong>centroid</strong> (center of mass) of the region. Since the weights are uniform,
+                                the resulting coordinate is simply the arithmetic average of all pixel locations within
+                                the binary mask. No additional spatial information beyond the mask's shape and size is
+                                used.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Gaussian-Based Approach:</strong>
+                            <p>
+                                In contrast, the Gaussian-based heatmap encodes a <strong>spatial probability
+                                    distribution</strong> around the true landmark location. The pixel values decay
+                                smoothly from the center of the Gaussian, assigning higher weights to pixels closer to
+                                the landmark and progressively lower weights to pixels farther away.
+                            </p>
+                            <p>
+                                Mathematically, the weighted argmax for a Gaussian heatmap computes a <strong>soft
+                                    center of mass</strong> where the pixel intensities act as probabilities or weights:
+                            </p>
+                            <div style="text-align: center;">
+                                <code>
+                                    x<sub>Gaussian</sub> = (Σ x<sub>ij</sub> * H<sub>ij</sub>) / Σ H<sub>ij</sub>, &nbsp;&nbsp;
+                                    y<sub>Gaussian</sub> = (Σ y<sub>ij</sub> * H<sub>ij</sub>) / Σ H<sub>ij</sub>
+                                </code>
+                            </div>
+                            <p>
+                                Here, <code>H<sub>ij</sub></code> represents the Gaussian values at each pixel, which
+                                are non-uniform and encode how "likely" each pixel is to be the landmark. This smooth
+                                weighting allows the Gaussian-based approach to provide <em>sub-pixel accuracy</em> and
+                                more robust predictions, especially when landmarks are partially occluded, ambiguous, or
+                                noisy.
+                            </p>
+                        </li>
+                    </ul>
+
+                    <h4>Why We Think Gaussian Would Perform Better (in Theory):</h4>
+                    <p>
+                        In the Gaussian-based method:
+                    </p>
+                    <ul>
+                        <li>The pixel weights are <strong>continuous and smoothly decaying</strong>, providing a
+                            stronger signal about the landmark's location.</li>
+                        <li>The weighted average incorporates this <em>probability distribution</em>, which helps the
+                            model learn finer spatial relationships and improves landmark localization precision.</li>
+                    </ul>
+                    <p>
+                        In comparison, the binary mask provides only a <strong>hard region</strong> with equal weight,
+                        leading to less spatial information. Therefore, while the weighted argmax reduces to the
+                        centroid for binary masks, the Gaussian-based approach leverages richer information to generate
+                        more accurate landmark predictions.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('#sidebar a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Fade-in animation for sections
+        const sections = document.querySelectorAll('.section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const images = document.querySelectorAll("img");
+
+            images.forEach(function (img) {
+                img.addEventListener("click", function () {
+                    createFullscreenView(img);
+                });
+            });
+        });
+
+        function createFullscreenView(img) {
+            // Create container
+            const container = document.createElement('div');
+            container.className = 'fullscreen-container';
+
+            // Create close button
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'fullscreen-close';
+            closeBtn.innerHTML = '×';
+
+            // Create zoom controls
+            const zoomControls = document.createElement('div');
+            zoomControls.className = 'zoom-controls';
+
+            const zoomInBtn = document.createElement('button');
+            zoomInBtn.className = 'zoom-button';
+            zoomInBtn.innerHTML = '+';
+
+            const zoomOutBtn = document.createElement('button');
+            zoomOutBtn.className = 'zoom-button';
+            zoomOutBtn.innerHTML = '−';
+
+            zoomControls.appendChild(zoomInBtn);
+            zoomControls.appendChild(zoomOutBtn);
+
+            // Clone the image
+            const fullImg = img.cloneNode(true);
+            fullImg.style.transform = 'scale(1)';
+
+            // Add elements to container
+            container.appendChild(fullImg);
+            container.appendChild(closeBtn);
+            container.appendChild(zoomControls);
+            document.body.appendChild(container);
+
+            // Variables for panning
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+            let scale = 1;
+
+            // Drag functionality
+            container.addEventListener('mousedown', dragStart);
+            container.addEventListener('mousemove', drag);
+            container.addEventListener('mouseup', dragEnd);
+            container.addEventListener('mouseleave', dragEnd);
+
+            // Touch events for mobile
+            container.addEventListener('touchstart', dragStart);
+            container.addEventListener('touchmove', drag);
+            container.addEventListener('touchend', dragEnd);
+
+            // Zoom functionality
+            zoomInBtn.addEventListener('click', () => {
+                scale *= 1.2;
+                fullImg.style.transform = `scale(${scale})`;
+            });
+
+            zoomOutBtn.addEventListener('click', () => {
+                scale = Math.max(0.5, scale / 1.2);
+                fullImg.style.transform = `scale(${scale})`;
+            });
+
+            // Mouse wheel zoom
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                    scale *= 1.1;
+                } else {
+                    scale = Math.max(0.5, scale / 1.1);
+                }
+                fullImg.style.transform = `scale(${scale})`;
+            });
+
+            // Close button functionality
+            closeBtn.addEventListener('click', () => {
+                document.body.removeChild(container);
+            });
+
+            // ESC key to close
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(container);
+                }
+            });
+
+            function dragStart(e) {
+                if (e.type === "touchstart") {
+                    initialX = e.touches[0].clientX - xOffset;
+                    initialY = e.touches[0].clientY - yOffset;
+                } else {
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                }
+
+                if (e.target === fullImg) {
+                    isDragging = true;
+                }
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+
+                    if (e.type === "touchmove") {
+                        currentX = e.touches[0].clientX - initialX;
+                        currentY = e.touches[0].clientY - initialY;
+                    } else {
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                    }
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    fullImg.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) scale(${scale})`;
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+        }
+    </script>
+
+    <script>
+        document.querySelectorAll('.image-wrapper.hover-enabled').forEach(wrapper => {
+            const pTag = wrapper.querySelector('p');
+            console.log('Wrapper:', wrapper);
+            console.log('pTag:', pTag);
+
+            if (pTag) {
+                const originalText = pTag.textContent;
+                const hoverText = pTag.getAttribute('data-hover-text');
+
+                wrapper.addEventListener('mouseenter', () => {
+                    console.log('Mouse entered');
+                    pTag.textContent = hoverText;
+                });
+
+                wrapper.addEventListener('mouseleave', () => {
+                    console.log('Mouse left');
+                    pTag.textContent = originalText;
+                });
+            } else {
+                console.error('No <p> tag found in wrapper:', wrapper);
+            }
+        });
+    </script>
+
+    <script>
+        document.querySelectorAll('.video-container').forEach(container => {
+            const video = container.querySelector('.video');
+            const isReverse = video.classList.contains('reverse-video');
+            const frameRate = 30;
+
+            container.addEventListener('mouseenter', () => {
+                if (isReverse) {
+                    video.currentTime = video.duration;
+                    playReverse();
+                } else {
+                    video.currentTime = 0;
+                    video.play();
+                }
+            });
+
+            container.addEventListener('mouseleave', () => {
+                if (isReverse) {
+                    clearInterval(video.dataset.reverseInterval);
+                }
+                video.pause();
+                video.currentTime = isReverse ? video.duration : 0;
+            });
+
+            function playReverse() {
+                video.pause();
+                let time = video.duration;
+                const interval = setInterval(() => {
+                    if (time <= 0) {
+                        time = video.duration;
+                    }
+                    video.currentTime = time;
+                    time -= 1 / frameRate;
+                }, 1000 / frameRate);
+
+                video.dataset.reverseInterval = interval;
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.gif-container img').forEach(img => {
+                const originalSrc = img.src;
+
+                img.addEventListener('mouseenter', function () {
+                    // Store current src and replace with a blank data URL to pause
+                    img.dataset.originalSrc = img.src;
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    context.drawImage(img, 0, 0, img.width, img.height);
+                    img.src = canvas.toDataURL();
+                });
+
+                img.addEventListener('mouseleave', function () {
+                    // Restore original src to resume animation
+                    img.src = img.dataset.originalSrc;
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>
